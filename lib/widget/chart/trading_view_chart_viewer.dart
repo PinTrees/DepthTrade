@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../../models/candle_data.dart';
 import '../../models/trade_order.dart';
@@ -88,6 +89,20 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
   Timer? _countdownTimer;
   String _countdownStr = '';
 
+  // Desktop Ctrl+Scroll Zoom Hint State
+  bool _showCtrlScrollHint = false;
+  Timer? _ctrlScrollHintTimer;
+
+  void _triggerCtrlScrollHint() {
+    _ctrlScrollHintTimer?.cancel();
+    if (!_showCtrlScrollHint) {
+      setState(() => _showCtrlScrollHint = true);
+    }
+    _ctrlScrollHintTimer = Timer(const Duration(milliseconds: 1600), () {
+      if (mounted) setState(() => _showCtrlScrollHint = false);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -109,6 +124,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    _ctrlScrollHintTimer?.cancel();
     super.dispose();
   }
 
@@ -235,7 +251,17 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
             child: Listener(
               onPointerSignal: (pointerSignal) {
                 if (pointerSignal is PointerScrollEvent) {
+                  // 데스크탑에서는 Ctrl(또는 Mac의 Meta/Cmd) 키를 누른 상태에서만 스크롤 줌(압축/확대) 동작
+                  final isCtrlOrMeta = HardwareKeyboard.instance.isControlPressed ||
+                      HardwareKeyboard.instance.isMetaPressed;
+
+                  if (!isCtrlOrMeta) {
+                    _triggerCtrlScrollHint();
+                    return;
+                  }
+
                   setState(() {
+                    if (_showCtrlScrollHint) _showCtrlScrollHint = false;
                     if (pointerSignal.scrollDelta.dy < 0) {
                       _visibleCount = (_visibleCount - 4).clamp(15, totalCandles);
                     } else {
@@ -266,37 +292,95 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                   },
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      return CustomPaint(
-                        size: Size(constraints.maxWidth, constraints.maxHeight),
-                        painter: _TradingViewChartPainter(
-                          candles: effectiveCandles,
-                          visibleCandles: visibleCandles,
-                          startIndex: startIdx,
-                          indicators: _indicators,
-                          currentPrice: widget.currentPrice,
-                          liveBuyOrders: _showGridOrders ? widget.liveBuyOrders : [],
-                          liveCloseOrders: _showGridOrders ? widget.liveCloseOrders : [],
-                          chartStyle: _chartStyle,
-                          showMA: _showMA,
-                          showEMA: _showEMA,
-                          showBB: _showBB,
-                          showSAR: _showSAR,
-                          showSuperTrend: _showSuperTrend,
-                          showVWAP: _showVWAP,
-                          showIchimoku: _showIchimoku,
-                          showHighLowBadges: _showHighLowBadges,
-                          useLogScale: _useLogScale,
-                          subIndicator: _subIndicator,
-                          countdownStr: _showCountdown ? _countdownStr : null,
-                          hoverPosition: _hoverPosition,
-                          onHoverCandleIndex: (idx) {
-                            if (_hoveredCandleIndex != idx) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (mounted) setState(() => _hoveredCandleIndex = idx);
-                              });
-                            }
-                          },
-                        ),
+                      return Stack(
+                        children: [
+                          CustomPaint(
+                            size: Size(constraints.maxWidth, constraints.maxHeight),
+                            painter: _TradingViewChartPainter(
+                              candles: effectiveCandles,
+                              visibleCandles: visibleCandles,
+                              startIndex: startIdx,
+                              indicators: _indicators,
+                              currentPrice: widget.currentPrice,
+                              liveBuyOrders: _showGridOrders ? widget.liveBuyOrders : [],
+                              liveCloseOrders: _showGridOrders ? widget.liveCloseOrders : [],
+                              chartStyle: _chartStyle,
+                              showMA: _showMA,
+                              showEMA: _showEMA,
+                              showBB: _showBB,
+                              showSAR: _showSAR,
+                              showSuperTrend: _showSuperTrend,
+                              showVWAP: _showVWAP,
+                              showIchimoku: _showIchimoku,
+                              showHighLowBadges: _showHighLowBadges,
+                              useLogScale: _useLogScale,
+                              subIndicator: _subIndicator,
+                              countdownStr: _showCountdown ? _countdownStr : null,
+                              hoverPosition: _hoverPosition,
+                              onHoverCandleIndex: (idx) {
+                                if (_hoveredCandleIndex != idx) {
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    if (mounted) setState(() => _hoveredCandleIndex = idx);
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+
+                          // Ctrl + 스크롤 줌 안내 오버레이 토스트
+                          if (_showCtrlScrollHint)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: Container(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  child: Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        color: AppColor.backgroundCard.withValues(alpha: 0.95),
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: AppColor.subtleShadow,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: AppColor.accent.withValues(alpha: 0.2),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              'Ctrl',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColor.accent,
+                                                fontFamily: 'monospace',
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Icon(Icons.add, size: 14, color: AppColor.textSecondary),
+                                          const SizedBox(width: 8),
+                                          const Icon(Icons.mouse, size: 16, color: AppColor.accent),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            '스크롤하여 차트를 압축/확대하세요',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       );
                     },
                   ),
