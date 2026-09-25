@@ -122,9 +122,8 @@ class AccountStatCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
+                  color: AppColor.inputSurface,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white10),
                 ),
                 child: Row(
                   children: [
@@ -164,9 +163,9 @@ class AccountStatCard extends StatelessWidget {
       width: width,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColor.glassBackground,
+        color: AppColor.cardSurface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColor.glassBorder),
+        boxShadow: AppColor.subtleShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -90,7 +90,7 @@ class _ApiSettingDialogState extends State<ApiSettingDialog> {
       backgroundColor: AppColor.backgroundCard,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: AppColor.glassBorder),
+        side: BorderSide.none,
       ),
       child: Container(
         width: 500,
@@ -127,11 +127,10 @@ class _ApiSettingDialogState extends State<ApiSettingDialog> {
 
             // Mode Selector
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: AppColor.glassBackground,
+                color: AppColor.inputSurface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColor.glassBorder),
               ),
               child: Row(
                 children: [
@@ -145,9 +144,7 @@ class _ApiSettingDialogState extends State<ApiSettingDialog> {
                               ? AppColor.primary.withValues(alpha: 0.3)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: _isSimulation ? AppColor.primary : Colors.transparent,
-                          ),
+                          boxShadow: _isSimulation ? AppColor.subtleShadow : null,
                         ),
                         alignment: Alignment.center,
                         child: Text(
@@ -172,9 +169,7 @@ class _ApiSettingDialogState extends State<ApiSettingDialog> {
                               ? AppColor.shortRed.withValues(alpha: 0.3)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: !_isSimulation ? AppColor.shortRed : Colors.transparent,
-                          ),
+                          boxShadow: !_isSimulation ? AppColor.subtleShadow : null,
                         ),
                         alignment: Alignment.center,
                         child: Text(
@@ -231,10 +226,11 @@ class _ApiSettingDialogState extends State<ApiSettingDialog> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.cardSurface,
                       foregroundColor: AppColor.accent,
-                      side: const BorderSide(color: AppColor.accent),
+                      elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),

@@ -41,9 +41,8 @@ class GlassInputField extends StatelessWidget {
         const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
-            color: AppColor.glassBackground,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColor.glassBorder),
+            color: AppColor.inputSurface, // 아웃라인 제거, 은은하고 차분한 인풋 서피스
+            borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
             controller: controller,

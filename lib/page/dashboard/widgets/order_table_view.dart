@@ -92,13 +92,17 @@ class _OrderTableViewState extends State<OrderTableView>
 
     return ListView.separated(
       itemCount: orders.length,
-      separatorBuilder: (_, __) => const Divider(color: Colors.white10, height: 1),
+      separatorBuilder: (_, __) => const SizedBox(height: 6),
       itemBuilder: (context, idx) {
         final o = orders[idx];
         final timeStr = DateFormat('HH:mm:ss').format(o.createdAt);
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColor.inputSurface.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Row(
             children: [
               // Side Badge
@@ -188,13 +192,17 @@ class _OrderTableViewState extends State<OrderTableView>
 
     return ListView.separated(
       itemCount: history.length,
-      separatorBuilder: (_, __) => const Divider(color: Colors.white10, height: 1),
+      separatorBuilder: (_, __) => const SizedBox(height: 6),
       itemBuilder: (context, idx) {
         final o = history[idx];
         final timeStr = DateFormat('HH:mm:ss').format(o.updatedAt ?? o.createdAt);
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+          decoration: BoxDecoration(
+            color: AppColor.inputSurface.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Row(
             children: [
               Container(

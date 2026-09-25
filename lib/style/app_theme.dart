@@ -14,18 +14,21 @@ class AppTheme {
     ),
     fontFamily: 'SF',
     cardTheme: CardThemeData(
-      color: AppColor.glassBackground,
-      elevation: 0,
+      color: AppColor.cardSurface,
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColor.glassBorder, width: 1),
+        side: BorderSide.none, // 아웃라인 제거
       ),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: AppColor.backgroundCard,
+      backgroundColor: AppColor.cardSurface,
+      elevation: 16,
+      shadowColor: Colors.black.withValues(alpha: 0.5),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: AppColor.glassBorder, width: 1),
+        side: BorderSide.none, // 아웃라인 제거
       ),
     ),
   );

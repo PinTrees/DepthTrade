@@ -176,7 +176,7 @@ class _DashboardPageState extends State<DashboardPage> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
             color: AppColor.backgroundCard.withValues(alpha: 0.8),
-            border: Border(bottom: BorderSide(color: AppColor.glassBorder)),
+            boxShadow: AppColor.subtleShadow,
           ),
           child: Row(
             children: [
@@ -212,11 +212,10 @@ class _DashboardPageState extends State<DashboardPage> {
 
               // Symbol Selector
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColor.glassBackground,
+                  color: AppColor.cardSurface, // 아웃라인 제거
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColor.glassBorder),
                 ),
                 child: Row(
                   children: [
@@ -373,7 +372,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         liveCloseOrders: engine.liveCloseOrders,
                       ),
                     ),
-                    const VerticalDivider(color: Colors.white10, width: 16),
+                    const SizedBox(width: 12),
                     // Order Book Depth
                     Expanded(
                       flex: 3,
@@ -394,11 +393,10 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Widget _buildRightPanelTabs() {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: AppColor.glassBackground,
+        color: AppColor.cardSurface, // 아웃라인 제거, 레이어드 서피스
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColor.glassBorder),
       ),
       child: Row(
         children: [

@@ -124,9 +124,8 @@ class _BacktestViewState extends State<BacktestView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: AppColor.glassBackground,
+                        color: AppColor.inputSurface,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColor.glassBorder),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
@@ -163,9 +162,8 @@ class _BacktestViewState extends State<BacktestView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: AppColor.glassBackground,
+                        color: AppColor.inputSurface,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColor.glassBorder),
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<int>(
@@ -251,9 +249,8 @@ class _BacktestViewState extends State<BacktestView> {
             Container(
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.25),
+                color: AppColor.inputSurface,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white10),
               ),
               child: CustomPaint(
                 painter: _EquityCurvePainter(_result!.equityCurve),
@@ -280,9 +277,9 @@ class _BacktestViewState extends State<BacktestView> {
       width: width,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppColor.glassBackground,
+        color: AppColor.cardSurface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColor.glassBorder),
+        boxShadow: AppColor.subtleShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

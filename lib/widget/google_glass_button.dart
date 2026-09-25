@@ -38,15 +38,10 @@ class _GoogleGlassButtonState extends State<GoogleGlassButton> {
         height: widget.height,
         decoration: BoxDecoration(
           color: _isHovered
-              ? Colors.white.withValues(alpha: 0.12)
+              ? Colors.white.withValues(alpha: 0.14)
               : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: _isHovered
-                ? Colors.white.withValues(alpha: 0.3)
-                : AppColor.glassBorder,
-            width: 1.2,
-          ),
+          // 아웃라인 제거 및 은은한 배경
           boxShadow: _isHovered
               ? [
                   BoxShadow(

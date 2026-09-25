@@ -66,7 +66,7 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 1. Navigation Bar
+  // 1. Navigation Bar (아웃라인 제거, 은은한 배경)
   Widget _buildNavBar(bool isDesktop) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -75,7 +75,7 @@ class _LandingPageState extends State<LandingPage> {
       ),
       decoration: BoxDecoration(
         color: AppColor.backgroundCard.withValues(alpha: 0.6),
-        border: Border(bottom: BorderSide(color: AppColor.glassBorder)),
+        boxShadow: AppColor.subtleShadow,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -135,7 +135,7 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 2. Hero Section
+  // 2. Hero Section (아웃라인 제거)
   Widget _buildHeroSection(bool isDesktop) {
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -144,15 +144,12 @@ class _LandingPageState extends State<LandingPage> {
       ),
       child: Column(
         children: [
-          // Cyber Badge
+          // Cyber Badge (아웃라인 제거, 은은한 배경)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: AppColor.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(30),
-              border: Border.all(
-                color: AppColor.primary.withValues(alpha: 0.4),
-              ),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -224,12 +221,13 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // Terminal Preview Card
+  // Terminal Preview Card (아웃라인 제거, 레이어드 서피스)
   Widget _buildTerminalPreview(bool isDesktop) {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 960),
       child: GlassContainer(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(22),
+        color: AppColor.cardSurface,
         child: Column(
           children: [
             // Window Header Bar
@@ -252,7 +250,7 @@ class _LandingPageState extends State<LandingPage> {
                 const Spacer(),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColor.longGreen.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
@@ -276,7 +274,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ],
             ),
-            const Divider(color: Colors.white10, height: 24),
+            const SizedBox(height: 20),
 
             // Mockup Content Rows
             Wrap(
@@ -327,11 +325,10 @@ class _LandingPageState extends State<LandingPage> {
       String title, String val, Color color, bool isDesktop) {
     return Container(
       width: isDesktop ? 200 : 140,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white10),
+        color: AppColor.inputSurface, // 아웃라인 제거, 차분한 레이어 서피스
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,18 +351,16 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 3. Stats Section
+  // 3. Stats Section (아웃라인 제거)
   Widget _buildStatsSection(bool isDesktop) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 80 : 20,
-        vertical: 36,
+        vertical: 40,
       ),
       decoration: BoxDecoration(
         color: AppColor.backgroundCard.withValues(alpha: 0.5),
-        border: Border.symmetric(
-          horizontal: BorderSide(color: AppColor.glassBorder),
-        ),
+        boxShadow: AppColor.subtleShadow,
       ),
       child: Center(
         child: ConstrainedBox(
@@ -498,6 +493,7 @@ class _LandingPageState extends State<LandingPage> {
     return GlassContainer(
       width: isDesktop ? 490 : double.infinity,
       padding: const EdgeInsets.all(24),
+      color: AppColor.cardSurface, // 아웃라인 제거, 고급스러운 솔리드 글래스 서피스
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -532,7 +528,7 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 5. Workflow Section
+  // 5. Workflow Section (아웃라인 제거)
   Widget _buildWorkflowSection(bool isDesktop) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
@@ -589,11 +585,11 @@ class _LandingPageState extends State<LandingPage> {
   }) {
     return Container(
       width: isDesktop ? 290 : double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColor.glassBackground,
+        color: AppColor.cardSurface, // 아웃라인 제거
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColor.glassBorder),
+        boxShadow: AppColor.subtleShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,7 +626,7 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 6. CTA Banner Section
+  // 6. CTA Banner Section (아웃라인 제거)
   Widget _buildCtaBannerSection(bool isDesktop) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
@@ -649,10 +645,6 @@ class _LandingPageState extends State<LandingPage> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: AppColor.primary.withValues(alpha: 0.4),
-                width: 1.5,
-              ),
               boxShadow: [
                 BoxShadow(
                   color: AppColor.primary.withValues(alpha: 0.25),
@@ -694,14 +686,13 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 7. Footer
+  // 7. Footer (아웃라인 제거)
   Widget _buildFooter() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.4),
-        border: Border(top: BorderSide(color: AppColor.glassBorder)),
       ),
       child: const Column(
         children: [

@@ -106,9 +106,6 @@ class _TradeEditorPanelState extends State<TradeEditorPanel> {
                           ? AppColor.primary.withValues(alpha: 0.2)
                           : AppColor.longGreen.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: cfg.isSimulation ? AppColor.primary : AppColor.longGreen,
-                      ),
                     ),
                     child: Text(
                       cfg.isSimulation ? '모의투자 (SIMULATION)' : '실거래 (BITGET REAL)',
@@ -245,9 +242,9 @@ class _TradeEditorPanelState extends State<TradeEditorPanel> {
                   // 설정 적용
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColor.glassBackgroundActive,
+                      backgroundColor: AppColor.cardSurface,
                       foregroundColor: Colors.white,
-                      side: BorderSide(color: AppColor.glassBorder),
+                      elevation: 0,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
