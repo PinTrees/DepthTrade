@@ -180,33 +180,41 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           child: Row(
             children: [
-              // Logo
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: AppColor.primaryGradient,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.show_chart, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'DEPTH TRADE',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: AppColor.textPrimary,
+              // Logo (Clickable to Landing Page)
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/'),
+                borderRadius: BorderRadius.circular(10),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        gradient: AppColor.primaryGradient,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.show_chart, color: Colors.white, size: 20),
                     ),
-                  ),
-                  Text(
-                    'Bitget Grid Trading Platform',
-                    style: TextStyle(fontSize: 10, color: AppColor.textSecondary),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'DEPTH TRADE',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                            color: AppColor.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          'Bitget Grid Trading Platform',
+                          style: TextStyle(fontSize: 10, color: AppColor.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 24),
 
@@ -288,6 +296,15 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 const SizedBox(width: 14),
               ],
+
+              // Home / Landing Page Button
+              IconButton(
+                icon: const Icon(Icons.home_outlined, color: AppColor.textSecondary),
+                tooltip: '홈 / 서비스 소개 보기',
+                onPressed: () => Navigator.pushNamed(context, '/'),
+              ),
+
+              const SizedBox(width: 4),
 
               // API Key / Mode Settings Button
               IconButton(

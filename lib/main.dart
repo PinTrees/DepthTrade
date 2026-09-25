@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'firebase_options.dart';
 import 'page/dashboard/dashboard_page.dart';
-import 'page/title/title_page.dart';
+import 'page/landing/landing_page.dart';
 import 'style/app_theme.dart';
 
 void main() async {
@@ -48,16 +48,17 @@ class _DepthTradeAppState extends State<DepthTradeApp> {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => const TitlePage(),
+        '/': (context) => const LandingPage(),
+        '/landing': (context) => const LandingPage(),
         '/dashboard': (context) => const DashboardPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/dashboard') {
           return MaterialPageRoute(builder: (_) => const DashboardPage());
         }
-        return MaterialPageRoute(builder: (_) => const TitlePage());
+        return MaterialPageRoute(builder: (_) => const LandingPage());
       },
-      onUnknownRoute: (_) => MaterialPageRoute(builder: (_) => const TitlePage()),
+      onUnknownRoute: (_) => MaterialPageRoute(builder: (_) => const LandingPage()),
     );
   }
 }

@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../service/auth_service.dart';
 import '../../style/app_color.dart';
 import '../../widget/galaxy_background.dart';
 import '../../widget/glass_container.dart';
+import '../../widget/glow_button.dart';
 import '../../widget/google_glass_button.dart';
 
 class LandingPage extends StatefulWidget {
@@ -15,12 +17,23 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   bool _isLoading = false;
 
+  // Interactive Calculator State
+  double _depositAmount = 1000.0;
+  int _selectedDepth = 4;
+
+  // Section Keys for smooth scrolling
+  final GlobalKey _featuresKey = GlobalKey();
+  final GlobalKey _simulatorKey = GlobalKey();
+  final GlobalKey _comparisonKey = GlobalKey();
+  final GlobalKey _workflowKey = GlobalKey();
+  final GlobalKey _securityKey = GlobalKey();
+
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
     try {
       final cred = await AuthService.instance.signInWithGoogle();
       if (cred != null && mounted) {
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.pushNamed(context, '/dashboard');
       }
     } catch (e) {
       if (mounted) {
@@ -36,107 +49,231 @@ class _LandingPageState extends State<LandingPage> {
     }
   }
 
+  void _scrollTo(GlobalKey key) {
+    final ctx = key.currentContext;
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final bool isDesktop = screenWidth > 900;
+    final bool isDesktop = screenWidth > 960;
 
-    return Scaffold(
-      backgroundColor: AppColor.background,
-      body: GalaxyBackground(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildNavBar(isDesktop),
-              _buildHeroSection(isDesktop),
-              const SizedBox(height: 60),
-              _buildStatsSection(isDesktop),
-              const SizedBox(height: 80),
-              _buildFeaturesSection(isDesktop),
-              const SizedBox(height: 80),
-              _buildWorkflowSection(isDesktop),
-              const SizedBox(height: 80),
-              _buildCtaBannerSection(isDesktop),
-              const SizedBox(height: 60),
-              _buildFooter(),
-            ],
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, authSnapshot) {
+        final User? currentUser = authSnapshot.data;
+        final bool isLoggedIn = currentUser != null;
+
+        return Scaffold(
+          backgroundColor: AppColor.background,
+          body: GalaxyBackground(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildNavBar(isDesktop, isLoggedIn, currentUser),
+                  _buildHeroSection(isDesktop, isLoggedIn),
+                  const SizedBox(height: 50),
+                  _buildStatsSection(isDesktop),
+                  const SizedBox(height: 90),
+                  _buildFeaturesSection(isDesktop, key: _featuresKey),
+                  const SizedBox(height: 90),
+                  _buildInteractiveSimulator(isDesktop, key: _simulatorKey),
+                  const SizedBox(height: 90),
+                  _buildComparisonSection(isDesktop, key: _comparisonKey),
+                  const SizedBox(height: 90),
+                  _buildWorkflowSection(isDesktop, key: _workflowKey),
+                  const SizedBox(height: 90),
+                  _buildSecuritySection(isDesktop, key: _securityKey),
+                  const SizedBox(height: 90),
+                  _buildCtaBannerSection(isDesktop, isLoggedIn),
+                  const SizedBox(height: 70),
+                  _buildFooter(),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  // 1. Navigation Bar (아웃라인 제거, 은은한 배경)
-  Widget _buildNavBar(bool isDesktop) {
+  // 1. Navigation Bar (Borderless Layered Glass)
+  Widget _buildNavBar(bool isDesktop, bool isLoggedIn, User? user) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 48 : 20,
-        vertical: 18,
+        vertical: 16,
       ),
       decoration: BoxDecoration(
-        color: AppColor.backgroundCard.withValues(alpha: 0.6),
+        color: AppColor.backgroundCard.withValues(alpha: 0.75),
         boxShadow: AppColor.subtleShadow,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  gradient: AppColor.primaryGradient,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColor.primary.withValues(alpha: 0.4),
-                      blurRadius: 12,
+          // Logo & Title
+          InkWell(
+            onTap: () {},
+            hoverColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    gradient: AppColor.primaryGradient,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.primary.withValues(alpha: 0.4),
+                        blurRadius: 14,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.candlestick_chart,
+                      color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'DEPTH TRADE',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        color: AppColor.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'QUANT AUTOMATION',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                        color: AppColor.accent,
+                      ),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.candlestick_chart,
-                    color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'DEPTH TRADE',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      color: AppColor.textPrimary,
-                    ),
-                  ),
-                  Text(
-                    'QUANT AUTOMATION',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1,
-                      color: AppColor.accent,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
-          GoogleGlassButton(
-            text: 'Google 로그인',
-            height: 42,
-            isLoading: _isLoading,
-            onPressed: _handleGoogleSignIn,
-          ),
+
+          // Desktop Nav Anchor Links
+          if (isDesktop)
+            Row(
+              children: [
+                _navLink('특징 & 알고리즘', () => _scrollTo(_featuresKey)),
+                _navLink('마틴게일 계산기', () => _scrollTo(_simulatorKey)),
+                _navLink('전략 비교', () => _scrollTo(_comparisonKey)),
+                _navLink('시작 가이드', () => _scrollTo(_workflowKey)),
+                _navLink('보안 및 아키텍처', () => _scrollTo(_securityKey)),
+              ],
+            ),
+
+          // User Actions (Google Login OR Launch Terminal)
+          if (isLoggedIn)
+            Row(
+              children: [
+                // User Profile Chip
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColor.cardSurface,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 12,
+                        backgroundColor: AppColor.primary.withValues(alpha: 0.3),
+                        backgroundImage: user?.photoURL != null
+                            ? NetworkImage(user!.photoURL!)
+                            : null,
+                        child: user?.photoURL == null
+                            ? Text(
+                                (user?.displayName?.isNotEmpty == true
+                                        ? user!.displayName![0]
+                                        : 'U')
+                                    .toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        user?.displayName ?? 'Trader',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColor.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                GlowButton(
+                  text: '대시보드 시작하기',
+                  icon: Icons.rocket_launch,
+                  height: 40,
+                  onPressed: () => Navigator.pushNamed(context, '/dashboard'),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.logout, size: 18, color: AppColor.textSecondary),
+                  tooltip: '로그아웃',
+                  onPressed: () async {
+                    await AuthService.instance.signOut();
+                  },
+                ),
+              ],
+            )
+          else
+            GoogleGlassButton(
+              text: 'Google 로그인',
+              height: 40,
+              isLoading: _isLoading,
+              onPressed: _handleGoogleSignIn,
+            ),
         ],
       ),
     );
   }
 
-  // 2. Hero Section (아웃라인 제거)
-  Widget _buildHeroSection(bool isDesktop) {
+  Widget _navLink(String label, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: TextButton(
+        onPressed: onTap,
+        style: TextButton.styleFrom(
+          foregroundColor: AppColor.textSecondary,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        ),
+      ),
+    );
+  }
+
+  // 2. Hero Section
+  Widget _buildHeroSection(bool isDesktop, bool isLoggedIn) {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 60 : 20,
@@ -144,7 +281,7 @@ class _LandingPageState extends State<LandingPage> {
       ),
       child: Column(
         children: [
-          // Cyber Badge (아웃라인 제거, 은은한 배경)
+          // Cyber Badge (Borderless layered pill)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -175,7 +312,7 @@ class _LandingPageState extends State<LandingPage> {
             '인간의 감정을 배제한\n심도(Depth) 기반 그리드 자동매매',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: isDesktop ? 46 : 30,
+              fontSize: isDesktop ? 48 : 32,
               fontWeight: FontWeight.w900,
               color: AppColor.textPrimary,
               height: 1.25,
@@ -186,7 +323,7 @@ class _LandingPageState extends State<LandingPage> {
 
           // Sub-headline
           ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
+            constraints: const BoxConstraints(maxWidth: 720),
             child: Text(
               '오더북 호가창 깊이 실시간 분석 · 1.74% 동적 이격도 제어 · 마틴게일 피라미딩 승수 · 과거 캔들 백테스트 시뮬레이터까지. 위험 부담 없는 모의투자와 Bitget 실거래를 모두 지원합니다.',
               textAlign: TextAlign.center,
@@ -199,32 +336,45 @@ class _LandingPageState extends State<LandingPage> {
           ),
           const SizedBox(height: 36),
 
-          // Primary CTA
-          GoogleGlassButton(
-            width: isDesktop ? 320 : double.infinity,
-            height: 56,
-            text: 'Google 계정으로 시작하기',
-            isLoading: _isLoading,
-            onPressed: _handleGoogleSignIn,
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            '별도의 회원가입 없이 Google 계정으로 즉시 연동됩니다.',
-            style: TextStyle(fontSize: 12, color: AppColor.textDisabled),
-          ),
+          // Primary CTA (Smart awareness based on login state)
+          if (isLoggedIn)
+            GlowButton(
+              width: isDesktop ? 340 : double.infinity,
+              height: 56,
+              text: '트레이딩 대시보드 바로가기',
+              icon: Icons.rocket_launch,
+              onPressed: () => Navigator.pushNamed(context, '/dashboard'),
+            )
+          else
+            Column(
+              children: [
+                GoogleGlassButton(
+                  width: isDesktop ? 340 : double.infinity,
+                  height: 56,
+                  text: 'Google 계정으로 무료 시작하기',
+                  isLoading: _isLoading,
+                  onPressed: _handleGoogleSignIn,
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  '별도의 복잡한 회원가입 없이 Google 계정으로 즉시 연동됩니다.',
+                  style: TextStyle(fontSize: 12, color: AppColor.textDisabled),
+                ),
+              ],
+            ),
           const SizedBox(height: 50),
 
-          // Terminal Mockup Card
+          // Live Terminal Mockup Card
           _buildTerminalPreview(isDesktop),
         ],
       ),
     );
   }
 
-  // Terminal Preview Card (아웃라인 제거, 레이어드 서피스)
+  // Terminal Preview Card
   Widget _buildTerminalPreview(bool isDesktop) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 960),
+      constraints: const BoxConstraints(maxWidth: 980),
       child: GlassContainer(
         padding: const EdgeInsets.all(22),
         color: AppColor.cardSurface,
@@ -281,30 +431,10 @@ class _LandingPageState extends State<LandingPage> {
               spacing: 16,
               runSpacing: 16,
               children: [
-                _previewStat(
-                  '실시간 체결가',
-                  '68,450.0 USDT',
-                  AppColor.accent,
-                  isDesktop,
-                ),
-                _previewStat(
-                  '누적 실현손익',
-                  '+1,482.35 USDT',
-                  AppColor.longGreen,
-                  isDesktop,
-                ),
-                _previewStat(
-                  '페어 체결 횟수',
-                  '128 회 완료',
-                  AppColor.secondary,
-                  isDesktop,
-                ),
-                _previewStat(
-                  '동적 이격도',
-                  '0.34% / 1.74%',
-                  AppColor.textPrimary,
-                  isDesktop,
-                ),
+                _previewStat('실시간 체결가', '68,450.0 USDT', AppColor.accent, isDesktop),
+                _previewStat('누적 실현손익', '+1,482.35 USDT', AppColor.longGreen, isDesktop),
+                _previewStat('페어 체결 횟수', '128 회 완료', AppColor.secondary, isDesktop),
+                _previewStat('동적 이격도', '0.34% / 1.74%', AppColor.textPrimary, isDesktop),
               ],
             ),
           ],
@@ -321,21 +451,19 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  Widget _previewStat(
-      String title, String val, Color color, bool isDesktop) {
+  Widget _previewStat(String title, String val, Color color, bool isDesktop) {
     return Container(
-      width: isDesktop ? 200 : 140,
+      width: isDesktop ? 210 : 140,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColor.inputSurface, // 아웃라인 제거, 차분한 레이어 서피스
+        color: AppColor.inputSurface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style:
-                  const TextStyle(fontSize: 11, color: AppColor.textSecondary)),
+              style: const TextStyle(fontSize: 11, color: AppColor.textSecondary)),
           const SizedBox(height: 4),
           Text(
             val,
@@ -351,7 +479,7 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 3. Stats Section (아웃라인 제거)
+  // 3. Stats Section
   Widget _buildStatsSection(bool isDesktop) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -419,9 +547,10 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 4. Features Section
-  Widget _buildFeaturesSection(bool isDesktop) {
-    return Padding(
+  // 4. Core Features Section
+  Widget _buildFeaturesSection(bool isDesktop, {Key? key}) {
+    return Container(
+      key: key,
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
       child: Center(
         child: ConstrainedBox(
@@ -493,7 +622,7 @@ class _LandingPageState extends State<LandingPage> {
     return GlassContainer(
       width: isDesktop ? 490 : double.infinity,
       padding: const EdgeInsets.all(24),
-      color: AppColor.cardSurface, // 아웃라인 제거, 고급스러운 솔리드 글래스 서피스
+      color: AppColor.cardSurface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -528,9 +657,394 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 5. Workflow Section (아웃라인 제거)
-  Widget _buildWorkflowSection(bool isDesktop) {
+  // 5. Interactive Quant Simulator / Calculator
+  Widget _buildInteractiveSimulator(bool isDesktop, {Key? key}) {
+    // Multipliers from BitgetBot_GridTrade: 1, 2, 4, 7, 11
+    final multipliers = [1, 2, 4, 7, 11];
+    final activeMultipliers = multipliers.take(_selectedDepth).toList();
+    final double totalMultiplier =
+        activeMultipliers.fold(0, (sum, m) => sum + m).toDouble();
+    final double baseOrderSize = _depositAmount / (totalMultiplier * 1.5);
+
+    return Container(
+      key: key,
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1050),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColor.accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'INTERACTIVE ALGORITHM SIMULATOR',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.accent,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                '직접 체험하는 마틴게일 심도 계산기',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColor.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '자금과 그리드 단계를 조절하여 알고리즘이 주문 규모를 어떻게 배분하는지 실시간으로 확인해보세요.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
+              ),
+              const SizedBox(height: 36),
+
+              // Interactive Container
+              GlassContainer(
+                padding: const EdgeInsets.all(28),
+                color: AppColor.cardSurface,
+                child: Column(
+                  children: [
+                    // Controls Row
+                    if (isDesktop)
+                      Row(
+                        children: [
+                          Expanded(child: _depositControl()),
+                          const SizedBox(width: 32),
+                          Expanded(child: _depthControl()),
+                        ],
+                      )
+                    else ...[
+                      _depositControl(),
+                      const SizedBox(height: 20),
+                      _depthControl(),
+                    ],
+                    const SizedBox(height: 28),
+
+                    // Visualization Bars
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColor.inputSurface,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '단계별 주문 배치 시뮬레이션',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColor.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                '수량 승수: 1x -> 2x -> 4x -> 7x -> 11x',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontFamily: 'monospace',
+                                  color: AppColor.accent,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          ...List.generate(activeMultipliers.length, (idx) {
+                            final m = activeMultipliers[idx];
+                            final orderAmount = (baseOrderSize * m);
+                            final pct = orderAmount / _depositAmount;
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 70,
+                                    child: Text(
+                                      'Depth ${idx + 1}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColor.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: LinearProgressIndicator(
+                                        value: (pct * 2.5).clamp(0.05, 1.0),
+                                        minHeight: 18,
+                                        backgroundColor: AppColor.cardSurface,
+                                        valueColor: AlwaysStoppedAnimation(
+                                          Color.lerp(AppColor.primary, AppColor.accent, idx / 4)!,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  SizedBox(
+                                    width: 100,
+                                    child: Text(
+                                      '${orderAmount.toStringAsFixed(1)} USDT (${m}x)',
+                                      textAlign: TextAlign.right,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontFamily: 'monospace',
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColor.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _depositControl() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('운용 자금 (USDT)',
+                style: TextStyle(fontSize: 13, color: AppColor.textSecondary)),
+            Text(
+              '${_depositAmount.toStringAsFixed(0)} USDT',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
+                color: AppColor.accent,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: _depositAmount,
+          min: 200,
+          max: 10000,
+          divisions: 49,
+          activeColor: AppColor.accent,
+          inactiveColor: AppColor.inputSurface,
+          onChanged: (v) => setState(() => _depositAmount = v),
+        ),
+      ],
+    );
+  }
+
+  Widget _depthControl() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('그리드 심도 레벨 (Depth)',
+                style: TextStyle(fontSize: 13, color: AppColor.textSecondary)),
+            Text(
+              '$_selectedDepth 단계',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
+                color: AppColor.secondary,
+              ),
+            ),
+          ],
+        ),
+        Slider(
+          value: _selectedDepth.toDouble(),
+          min: 1,
+          max: 5,
+          divisions: 4,
+          activeColor: AppColor.secondary,
+          inactiveColor: AppColor.inputSurface,
+          onChanged: (v) => setState(() => _selectedDepth = v.round()),
+        ),
+      ],
+    );
+  }
+
+  // 6. Strategy Comparison Section
+  Widget _buildComparisonSection(bool isDesktop, {Key? key}) {
+    return Container(
+      key: key,
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1050),
+          child: Column(
+            children: [
+              const Text(
+                '감정적 수동매매 vs DepthTrade 퀀트 자동매매',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColor.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '더 이상 밤새 차트를 보며 불안해하지 마세요. 통계와 수학적 규칙이 시장을 지배합니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
+              ),
+              const SizedBox(height: 40),
+
+              if (isDesktop)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _comparisonCardManual()),
+                    const SizedBox(width: 24),
+                    Expanded(child: _comparisonCardQuant()),
+                  ],
+                )
+              else ...[
+                _comparisonCardManual(),
+                const SizedBox(height: 20),
+                _comparisonCardQuant(),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _comparisonCardManual() {
+    return GlassContainer(
+      padding: const EdgeInsets.all(26),
+      color: AppColor.cardSurface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColor.shortRed.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.close, color: AppColor.shortRed, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                '일반 수동 투자 (Manual)',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _compItem(false, '급락 시 공포에 질려 최저점 패닉셀(손절) 발생'),
+          _compItem(false, '24시간 스마트폰 차트 감시로 인한 일상 피로 누적'),
+          _compItem(false, '손익비 없는 뇌동매매와 과도한 레버리지 청산 위험'),
+          _compItem(false, '주문 취소 및 재주문 지연으로 슬리피지 손실'),
+        ],
+      ),
+    );
+  }
+
+  Widget _comparisonCardQuant() {
+    return GlassContainer(
+      padding: const EdgeInsets.all(26),
+      color: AppColor.elevatedSurface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColor.longGreen.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.check, color: AppColor.longGreen, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'DepthTrade 퀀트 엔진',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.longGreen,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _compItem(true, '1.74% 동적 이격 제어로 슬리피지 방어 및 무감정 익절'),
+          _compItem(true, '클라우드 기반 24시간 365일 무중단 오더북 자동 관리'),
+          _compItem(true, '수학적 피라미딩 승수로 반등 시 평균단가 대폭 인하 탈출'),
+          _compItem(true, '안전한 모의투자 시뮬레이터로 전략 사전 무제한 검증'),
+        ],
+      ),
+    );
+  }
+
+  Widget _compItem(bool isGood, String text) {
     return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            isGood ? Icons.check_circle : Icons.cancel,
+            size: 16,
+            color: isGood ? AppColor.longGreen : AppColor.shortRed,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                color: isGood ? AppColor.textPrimary : AppColor.textSecondary,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 7. Workflow Section
+  Widget _buildWorkflowSection(bool isDesktop, {Key? key}) {
+    return Container(
+      key: key,
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
       child: Center(
         child: ConstrainedBox(
@@ -587,7 +1101,7 @@ class _LandingPageState extends State<LandingPage> {
       width: isDesktop ? 290 : double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColor.cardSurface, // 아웃라인 제거
+        color: AppColor.cardSurface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppColor.subtleShadow,
       ),
@@ -626,13 +1140,105 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 6. CTA Banner Section (아웃라인 제거)
-  Widget _buildCtaBannerSection(bool isDesktop) {
+  // 8. Security & Tech Architecture
+  Widget _buildSecuritySection(bool isDesktop, {Key? key}) {
+    return Container(
+      key: key,
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1050),
+          child: Column(
+            children: [
+              const Text(
+                '신뢰할 수 있는 보안 및 테크 아키텍처',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColor.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '트레이더의 자산 보안을 최우선으로 설계된 안전한 프라이빗 엔진입니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
+              ),
+              const SizedBox(height: 36),
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                children: [
+                  _secCard(
+                    Icons.lock,
+                    '100% 클라이언트 로컬 보안',
+                    'Bitget API Key와 Secret은 외부 서버로 전송되지 않고 브라우저 암호화 저장소에만 보관됩니다.',
+                    isDesktop,
+                  ),
+                  _secCard(
+                    Icons.speed,
+                    'Bitget v2 웹소켓 초저지연 연동',
+                    '밀리초 단위의 호가 변동을 직접 수신하여 슬리피지 없이 최적의 호가에 주문을 체결합니다.',
+                    isDesktop,
+                  ),
+                  _secCard(
+                    Icons.shield,
+                    '패닉 방어 긴급 청산 프로토콜',
+                    '비정상 변동성 발생 시 [전체 주문 취소] 비상 차단기를 통해 즉각 포지션을 보호합니다.',
+                    isDesktop,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _secCard(IconData icon, String title, String desc, bool isDesktop) {
+    return Container(
+      width: isDesktop ? 320 : double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppColor.cardSurface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: AppColor.subtleShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColor.accent, size: 28),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: AppColor.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            desc,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColor.textSecondary,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 9. CTA Banner Section
+  Widget _buildCtaBannerSection(bool isDesktop, bool isLoggedIn) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 60 : 20),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 960),
+          constraints: const BoxConstraints(maxWidth: 980),
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: isDesktop ? 48 : 24,
@@ -671,13 +1277,22 @@ class _LandingPageState extends State<LandingPage> {
                   style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
                 ),
                 const SizedBox(height: 28),
-                GoogleGlassButton(
-                  width: isDesktop ? 320 : double.infinity,
-                  height: 54,
-                  text: 'Google 계정으로 바로 가동하기',
-                  isLoading: _isLoading,
-                  onPressed: _handleGoogleSignIn,
-                ),
+                if (isLoggedIn)
+                  GlowButton(
+                    width: isDesktop ? 340 : double.infinity,
+                    height: 54,
+                    text: '트레이딩 대시보드 바로가기',
+                    icon: Icons.rocket_launch,
+                    onPressed: () => Navigator.pushNamed(context, '/dashboard'),
+                  )
+                else
+                  GoogleGlassButton(
+                    width: isDesktop ? 340 : double.infinity,
+                    height: 54,
+                    text: 'Google 계정으로 바로 가동하기',
+                    isLoading: _isLoading,
+                    onPressed: _handleGoogleSignIn,
+                  ),
               ],
             ),
           ),
@@ -686,11 +1301,11 @@ class _LandingPageState extends State<LandingPage> {
     );
   }
 
-  // 7. Footer (아웃라인 제거)
+  // 10. Footer
   Widget _buildFooter() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.4),
       ),
@@ -705,7 +1320,7 @@ class _LandingPageState extends State<LandingPage> {
               color: AppColor.textSecondary,
             ),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 10),
           Text(
             '면책 고지: 가상자산 및 선물 거래는 높은 변동성으로 인해 원금 손실의 위험이 따릅니다. 본 플랫폼은 투자 보조 도구이며 투자 결과에 대한 최종 책임은 사용자 본인에게 있습니다.',
             textAlign: TextAlign.center,
@@ -713,7 +1328,7 @@ class _LandingPageState extends State<LandingPage> {
           ),
           SizedBox(height: 8),
           Text(
-            '© 2026 DepthTrade. All rights reserved.',
+            '© 2026 DepthTrade. All rights reserved. Powered by BitgetBot_GridTrade Core Engine.',
             style: TextStyle(fontSize: 11, color: AppColor.textDisabled),
           ),
         ],
