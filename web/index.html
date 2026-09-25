@@ -7,6 +7,11 @@
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="DepthTrade - Automated Grid Trading Platform">
 
+  <!-- 브라우저 및 CDN 캐시 완전 비활성화 (항상 최신 빌드 즉시 반영) -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -82,16 +87,46 @@
     <div class="loading-subtitle">INITIALIZING QUANT ENGINE...</div>
   </div>
 
-  <script src="flutter_bootstrap.js" async></script>
   <script>
-    window.addEventListener('load', function() {
+    // 기존에 등록된 오래된 서비스 워커 및 캐시 스토리지 즉시 강제 삭제 (최신 배포 코드 즉각 반영)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (var registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        for (var name of names) {
+          caches.delete(name);
+        }
+      });
+    }
+
+    // 캐시 방지 타임스탬프를 붙여 flutter_bootstrap.js 동적 로드
+    var script = document.createElement('script');
+    script.src = 'flutter_bootstrap.js?v=' + new Date().getTime();
+    script.async = true;
+    document.body.appendChild(script);
+
+    // 첫 프레임 로딩 완료 시 스플래시 화면 페이드아웃
+    window.addEventListener('flutter-first-frame', function() {
       const loader = document.getElementById('loading-container');
       if (loader) {
-        setTimeout(() => {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.remove(), 500);
+      }
+    });
+
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        const loader = document.getElementById('loading-container');
+        if (loader) {
           loader.style.opacity = '0';
           setTimeout(() => loader.remove(), 500);
-        }, 1200);
-      }
+        }
+      }, 2000);
     });
   </script>
 </body>
