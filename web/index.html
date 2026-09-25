@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="DepthTrade - Automated Grid Trading Platform">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="DepthTrade">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>DepthTrade | Automated Grid Trading System</title>
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    body {
+      background-color: #0b0e17;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #loading-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #1b203a 0%, #080a10 100%);
+      color: #ffffff;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(124, 77, 255, 0.2);
+      border-top: 3px solid #7c4dff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    .loading-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #7c4dff, #448aff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .loading-subtitle {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-container">
+    <div class="spinner"></div>
+    <div class="loading-title">DEPTH TRADE</div>
+    <div class="loading-subtitle">INITIALIZING QUANT ENGINE...</div>
+  </div>
+
+  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    window.addEventListener('load', function() {
+      const loader = document.getElementById('loading-container');
+      if (loader) {
+        setTimeout(() => {
+          loader.style.opacity = '0';
+          setTimeout(() => loader.remove(), 500);
+        }, 1200);
+      }
+    });
+  </script>
+</body>
+</html>
