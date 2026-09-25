@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
+import '../../../engine/grid_bot_engine.dart';
+import '../../../models/candle_data.dart';
+import '../../../service/bitget_api_service.dart';
 import '../../../style/style.dart';
 import '../../../widget/chart/indicator_guide_dialog.dart';
+import '../../../widget/chart/trading_view_chart_viewer.dart';
 
 /// Unified Technical Indicator Guide & Simulation View for Dashboard
 class IndicatorGuideView extends StatefulWidget {
   final String? initialIndicatorId;
+  final List<CandleData>? candles;
+  final double? currentPrice;
+  final String? activeInterval;
   final VoidCallback? onReturnToTerminal;
   final ValueChanged<String>? onIndicatorChanged;
+  final ValueChanged<String>? onIntervalChanged;
 
   const IndicatorGuideView({
     super.key,
     this.initialIndicatorId,
+    this.candles,
+    this.currentPrice,
+    this.activeInterval,
     this.onReturnToTerminal,
     this.onIndicatorChanged,
+    this.onIntervalChanged,
   });
 
   @override
@@ -25,10 +37,44 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
   String _selectedCategory = '전체';
   final TextEditingController _searchController = TextEditingController();
 
+  List<CandleData> _btcCandles = [];
+  double _btcPrice = 0.0;
+  String _chartInterval = '15m';
+  bool _isLoadingCandles = false;
+
   @override
   void initState() {
     super.initState();
     _currentId = widget.initialIndicatorId ?? 'sma';
+    _chartInterval = widget.activeInterval ?? '15m';
+    if (widget.candles != null && widget.candles!.isNotEmpty) {
+      _btcCandles = widget.candles!;
+    }
+    if (widget.currentPrice != null && widget.currentPrice! > 0) {
+      _btcPrice = widget.currentPrice!;
+    }
+    if (_btcCandles.isEmpty) {
+      _fetchBtcCandles();
+    }
+  }
+
+  Future<void> _fetchBtcCandles() async {
+    if (_isLoadingCandles) return;
+    _isLoadingCandles = true;
+    try {
+      final candles = await BitgetApiService.instance.getCandles('BTCUSDT', _chartInterval, 120);
+      if (mounted && candles.isNotEmpty) {
+        setState(() {
+          _btcCandles = candles;
+          if (_btcPrice <= 0) {
+            _btcPrice = candles.last.close;
+          }
+        });
+      }
+    } catch (_) {
+    } finally {
+      _isLoadingCandles = false;
+    }
   }
 
   @override
@@ -40,6 +86,22 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
       setState(() {
         _currentId = widget.initialIndicatorId!;
       });
+    }
+    if (widget.candles != null && widget.candles != oldWidget.candles && widget.candles!.isNotEmpty) {
+      setState(() {
+        _btcCandles = widget.candles!;
+      });
+    }
+    if (widget.currentPrice != null && widget.currentPrice != oldWidget.currentPrice && widget.currentPrice! > 0) {
+      setState(() {
+        _btcPrice = widget.currentPrice!;
+      });
+    }
+    if (widget.activeInterval != null && widget.activeInterval != oldWidget.activeInterval) {
+      setState(() {
+        _chartInterval = widget.activeInterval!;
+      });
+      _fetchBtcCandles();
     }
   }
 
@@ -352,21 +414,25 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? item.categoryColor.withValues(alpha: isDark ? 0.22 : 0.15)
+                      ? AppColor.primary.withValues(alpha: isDark ? 0.22 : 0.15)
                       : AppColor.inputSurface,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(item.icon, size: 14, color: item.categoryColor),
+                    Icon(
+                      item.icon,
+                      size: 14,
+                      color: isSelected ? AppColor.accent : AppColor.textSecondary,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       item.title.split(' ').first,
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                        color: isSelected ? AppColor.textPrimary : AppColor.textSecondary,
+                        color: isSelected ? AppColor.accent : AppColor.textSecondary,
                       ),
                     ),
                   ],
@@ -404,15 +470,15 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: meta.categoryColor.withValues(alpha: 0.15),
+                          color: AppColor.primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           meta.category,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: meta.categoryColor,
+                            color: AppColor.accent,
                           ),
                         ),
                       ),
@@ -482,7 +548,7 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
               ),
               const SizedBox(height: 16),
 
-              // Summary Box
+              // Summary Box (Simple is Best, Accent Bar)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -497,7 +563,7 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                       width: 4,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: meta.categoryColor,
+                        color: AppColor.accent,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -517,12 +583,12 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
               ),
               const SizedBox(height: 24),
 
-              // Virtual Simulation Canvas Card
-              _buildVirtualSimulationCard(meta, isDark),
+              // Real Bitcoin (BTC/USDT) Chart Card with active indicator
+              _buildRealBtcChartCard(meta, isDark),
               const SizedBox(height: 24),
 
               // Formula Box
-              _buildSectionTitle('📐 수학적 계산 공식 및 알고리즘', meta.categoryColor),
+              _buildSectionTitle('📐 수학적 계산 공식 및 알고리즘'),
               const SizedBox(height: 10),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -532,11 +598,11 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                 ),
                 child: SelectableText(
                   meta.formula,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'monospace',
                     fontSize: 12.5,
                     height: 1.5,
-                    color: meta.categoryColor,
+                    color: AppColor.accent,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -544,7 +610,7 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
               const SizedBox(height: 24),
 
               // Actionable Trading Signals
-              _buildSectionTitle('⚡ 실전 트레이딩 매매 시그널', AppColor.accent),
+              _buildSectionTitle('⚡ 실전 트레이딩 매매 시그널'),
               const SizedBox(height: 10),
               ...meta.signals.map((sig) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
@@ -560,7 +626,7 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                         children: [
                           const Padding(
                             padding: EdgeInsets.only(top: 2),
-                            child: Icon(Icons.check_circle_rounded, size: 16, color: AppColor.longGreen),
+                            child: Icon(Icons.check_circle_rounded, size: 16, color: AppColor.accent),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -580,15 +646,16 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
               const SizedBox(height: 24),
 
               // Quant Bot Synergy Section
-              _buildSectionTitle('🤖 DepthTrade 퀀트 봇 활용 시너지 전략', AppColor.primary),
+              _buildSectionTitle('🤖 DepthTrade 퀀트 봇 활용 시너지 전략'),
               const SizedBox(height: 10),
               ...meta.quantBotTips.map((tip) => Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColor.primary.withValues(alpha: isDark ? 0.12 : 0.08),
+                        color: AppColor.cardSurface.withValues(alpha: isDark ? 0.7 : 0.9),
                         borderRadius: BorderRadius.circular(12),
+                        boxShadow: AppColor.subtleShadow,
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -623,8 +690,16 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
     );
   }
 
-  /// Virtual Simulation Chart Card
-  Widget _buildVirtualSimulationCard(IndicatorMeta meta, bool isDark) {
+  /// Real Bitcoin (BTC/USDT) Chart Card with active indicator
+  Widget _buildRealBtcChartCard(IndicatorMeta meta, bool isDark) {
+    final effectivePrice = widget.currentPrice != null && widget.currentPrice! > 0
+        ? widget.currentPrice!
+        : (_btcPrice > 0 ? _btcPrice : (GridBotEngine.instance.currentPrice > 0 ? GridBotEngine.instance.currentPrice : 0.0));
+
+    final effectiveCandles = widget.candles != null && widget.candles!.isNotEmpty
+        ? widget.candles!
+        : _btcCandles;
+
     return Container(
       decoration: BoxDecoration(
         color: AppColor.cardSurface.withValues(alpha: isDark ? 0.9 : 0.95),
@@ -636,10 +711,10 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Canvas Toolbar
+            // Top Bar
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: AppColor.inputSurface.withValues(alpha: 0.6),
+              color: AppColor.inputSurface,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -648,14 +723,14 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: BoxDecoration(
-                          color: meta.categoryColor,
+                        decoration: const BoxDecoration(
+                          color: AppColor.accent,
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '가상 시뮬레이션 캔들 엔진 (22개 봉 실시간 렌더링)',
+                        'BTC/USDT 실시간 비트코인 차트 (${meta.title})',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -667,15 +742,18 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: AppColor.accent.withValues(alpha: 0.15),
+                      color: AppColor.primary.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text(
-                      '순수 Dart 연산 (외부 SDK 0%)',
-                      style: TextStyle(
-                        fontSize: 10,
+                    child: Text(
+                      effectivePrice > 0
+                          ? '${effectivePrice.toStringAsFixed(1)} USDT'
+                          : 'LIVE BTC/USDT',
+                      style: const TextStyle(
+                        fontSize: 10.5,
                         fontWeight: FontWeight.bold,
                         color: AppColor.accent,
+                        fontFamily: 'monospace',
                       ),
                     ),
                   ),
@@ -683,17 +761,40 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
               ),
             ),
 
-            // Canvas Area
+            // Live Interactive TradingView Candlestick Chart
             SizedBox(
-              height: 280,
-              child: CustomPaint(
-                painter: VirtualIndicatorChartPainter(
-                  indicatorId: meta.id,
-                  isDark: isDark,
-                  primaryColor: meta.categoryColor,
-                ),
-                child: const SizedBox.expand(),
-              ),
+              height: 440,
+              child: effectiveCandles.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppColor.accent),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '비트코인 실시간 캔들 로딩 중...',
+                            style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )
+                  : TradingViewChartViewer(
+                      candles: effectiveCandles,
+                      currentPrice: effectivePrice,
+                      liveBuyOrders: const [],
+                      liveCloseOrders: const [],
+                      activeInterval: _chartInterval,
+                      focusedIndicatorId: meta.id,
+                      onIntervalChanged: (newInterval) {
+                        setState(() => _chartInterval = newInterval);
+                        _fetchBtcCandles();
+                        widget.onIntervalChanged?.call(newInterval);
+                      },
+                    ),
             ),
           ],
         ),
@@ -701,13 +802,13 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
     );
   }
 
-  Widget _buildSectionTitle(String title, Color color) {
+  Widget _buildSectionTitle(String title) {
     return Text(
       title,
       style: TextStyle(
         fontSize: 15,
         fontWeight: FontWeight.bold,
-        color: color,
+        color: AppColor.textPrimary,
       ),
     );
   }
@@ -840,29 +941,31 @@ class _IndicatorSidebarItemState extends State<_IndicatorSidebarItem> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected
-                  ? item.categoryColor.withValues(alpha: widget.isDark ? 0.18 : 0.12)
+                  ? AppColor.primary.withValues(alpha: widget.isDark ? 0.18 : 0.12)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                // Icon Box Container (matches DashboardSidebar & CoinSelector)
+                // Neutral Icon Box (No rainbow colors, Simple is Best)
                 Container(
-                  width: 34,
-                  height: 34,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: item.categoryColor.withValues(alpha: isSelected ? 0.22 : 0.12),
+                    color: isSelected
+                        ? AppColor.primary.withValues(alpha: 0.25)
+                        : AppColor.inputSurface,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     item.icon,
-                    size: 17,
-                    color: item.categoryColor,
+                    size: 16,
+                    color: isSelected ? AppColor.accent : AppColor.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 10),
 
-                // Title & Category Badge
+                // Title & Subtitle (Clean unified palette)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -872,48 +975,35 @@ class _IndicatorSidebarItemState extends State<_IndicatorSidebarItem> {
                         item.title,
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected ? AppColor.textPrimary : AppColor.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                            decoration: BoxDecoration(
-                              color: item.categoryColor.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              item.category,
-                              style: TextStyle(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w600,
-                                color: item.categoryColor,
-                              ),
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 2),
+                      Text(
+                        item.category,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color: isSelected ? AppColor.accent : AppColor.textDisabled,
+                        ),
                       ),
                     ],
                   ),
                 ),
 
                 // Right Accent Pill (matches DashboardSidebar _SidebarMenuItem)
-                if (isSelected) ...[
-                  const SizedBox(width: 6),
+                if (isSelected)
                   Container(
                     width: 4,
                     height: 18,
                     decoration: BoxDecoration(
-                      color: item.categoryColor,
+                      color: AppColor.accent,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                ],
               ],
             ),
           ),

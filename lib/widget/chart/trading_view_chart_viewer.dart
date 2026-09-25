@@ -47,6 +47,7 @@ class TradingViewChartViewer extends StatefulWidget {
   final String activeInterval;
   final ValueChanged<String>? onIntervalChanged;
   final ValueChanged<String>? onNavigateToIndicator;
+  final String? focusedIndicatorId;
 
   const TradingViewChartViewer({
     super.key,
@@ -57,6 +58,7 @@ class TradingViewChartViewer extends StatefulWidget {
     this.activeInterval = '15m',
     this.onIntervalChanged,
     this.onNavigateToIndicator,
+    this.focusedIndicatorId,
   });
 
   @override
@@ -107,9 +109,91 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
     });
   }
 
+  void _applyFocusedIndicator(String? id) {
+    if (id == null) return;
+    _showMA = false;
+    _showEMA = false;
+    _showBB = false;
+    _showSAR = false;
+    _showSuperTrend = false;
+    _showVWAP = false;
+    _showIchimoku = false;
+    _subIndicator = SubIndicator.none;
+
+    switch (id) {
+      case 'sma':
+        _showMA = true;
+        break;
+      case 'ema':
+        _showEMA = true;
+        break;
+      case 'bb':
+        _showBB = true;
+        break;
+      case 'sar':
+        _showSAR = true;
+        break;
+      case 'super_trend':
+        _showSuperTrend = true;
+        break;
+      case 'vwap':
+        _showVWAP = true;
+        break;
+      case 'ichimoku':
+        _showIchimoku = true;
+        break;
+      case 'rsi':
+        _subIndicator = SubIndicator.rsi;
+        break;
+      case 'macd':
+        _subIndicator = SubIndicator.macd;
+        break;
+      case 'kdj':
+        _subIndicator = SubIndicator.kdj;
+        break;
+      case 'wr':
+        _subIndicator = SubIndicator.wr;
+        break;
+      case 'cci':
+        _subIndicator = SubIndicator.cci;
+        break;
+      case 'atr':
+        _subIndicator = SubIndicator.atr;
+        break;
+      case 'obv':
+        _subIndicator = SubIndicator.obv;
+        break;
+      case 'heikin_ashi':
+        _chartStyle = ChartStyle.heikinAshi;
+        break;
+      case 'log_scale':
+        _useLogScale = true;
+        _showMA = true;
+        break;
+      case 'grid_order_lines':
+        _showGridOrders = true;
+        _showMA = true;
+        break;
+      case 'high_low_badges':
+        _showHighLowBadges = true;
+        _showMA = true;
+        break;
+      case 'countdown_timer':
+        _showCountdown = true;
+        _showMA = true;
+        break;
+      default:
+        _showMA = true;
+        break;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    if (widget.focusedIndicatorId != null) {
+      _applyFocusedIndicator(widget.focusedIndicatorId);
+    }
     _recomputeIndicators();
     _startCountdownTimer();
   }
@@ -117,6 +201,12 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
   @override
   void didUpdateWidget(covariant TradingViewChartViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.focusedIndicatorId != oldWidget.focusedIndicatorId &&
+        widget.focusedIndicatorId != null) {
+      setState(() {
+        _applyFocusedIndicator(widget.focusedIndicatorId);
+      });
+    }
     if (widget.candles != oldWidget.candles) {
       _recomputeIndicators();
     }

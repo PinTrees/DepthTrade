@@ -199,6 +199,10 @@ class _DashboardPageState extends State<DashboardPage> {
                           // Tab 5: 보조지표 연구소 & 가이드 (메인 대시보드 통일 레이아웃 뷰)
                           IndicatorGuideView(
                             initialIndicatorId: _activeIndicatorId,
+                            candles: _candles,
+                            currentPrice: GridBotEngine.instance.currentPrice,
+                            activeInterval: _activeInterval,
+                            onIntervalChanged: _changeInterval,
                             onReturnToTerminal: () => _onTabSelected(0),
                             onIndicatorChanged: (id) {
                               _activeIndicatorId = id;
