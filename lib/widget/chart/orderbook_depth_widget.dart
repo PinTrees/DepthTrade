@@ -13,8 +13,11 @@ class OrderbookDepthWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final asks = (orderBook['asks'] ?? []).take(8).toList().reversed.toList();
-    final bids = (orderBook['bids'] ?? []).take(8).toList();
+    final rawAsks = orderBook['asks'] ?? [];
+    final rawBids = orderBook['bids'] ?? [];
+
+    final asks = rawAsks.take(8).toList().reversed.toList();
+    final bids = rawBids.take(8).toList();
 
     double maxVol = 1.0;
     for (var a in asks) {
@@ -22,6 +25,18 @@ class OrderbookDepthWidget extends StatelessWidget {
     }
     for (var b in bids) {
       if (b.length > 1 && b[1] > maxVol) maxVol = b[1];
+    }
+
+    // Calculate Orderbook Price Spread
+    double spread = 0.0;
+    double spreadPct = 0.0;
+    if (rawAsks.isNotEmpty && rawBids.isNotEmpty) {
+      final lowestAsk = rawAsks.first[0];
+      final highestBid = rawBids.first[0];
+      if (lowestAsk > highestBid && lowestAsk > 0) {
+        spread = lowestAsk - highestBid;
+        spreadPct = (spread / lowestAsk) * 100;
+      }
     }
 
     return Column(
@@ -67,7 +82,7 @@ class OrderbookDepthWidget extends StatelessWidget {
           ),
         ),
 
-        // Center Current Price
+        // Center Current Price & Real-time Spread
         Container(
           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
           margin: const EdgeInsets.symmetric(vertical: 4),
@@ -78,13 +93,37 @@ class OrderbookDepthWidget extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                currentPrice > 0 ? currentPrice.toStringAsFixed(1) : '---',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppColor.accent,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    currentPrice > 0 ? currentPrice.toStringAsFixed(1) : '---',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColor.accent,
+                    ),
+                  ),
+                  // 값이 0이면 표시하지 않음 (Spread > 0 조건)
+                  if (spread > 0.0001) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColor.inputSurface,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '스프레드 ${spread.toStringAsFixed(1)} (${spreadPct.toStringAsFixed(2)}%)',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                          color: AppColor.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               Text(
                 '실시간 체결가',

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import '../../models/candle_data.dart';
 import '../../models/trade_order.dart';
 import '../../style/app_color.dart';
 import 'technical_indicator_calculator.dart';
+import 'indicator_guide_dialog.dart';
 
 enum ChartStyle {
   candles('캔들', Icons.candlestick_chart),
@@ -690,10 +692,11 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
           _ohlcItem('고(H)', c.high.toStringAsFixed(1), AppColor.textPrimary),
           _ohlcItem('저(L)', c.low.toStringAsFixed(1), AppColor.textPrimary),
           _ohlcItem('종(C)', c.close.toStringAsFixed(1), color),
-          Text(
-            '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)} (${diffPct.toStringAsFixed(2)}%)',
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color, fontFamily: 'monospace'),
-          ),
+          if (diff.abs() > 0.0001)
+            Text(
+              '${diff >= 0 ? '+' : ''}${diff.toStringAsFixed(1)} (${diffPct.toStringAsFixed(2)}%)',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color, fontFamily: 'monospace'),
+            ),
           _ohlcItem('거래량', c.volume.toStringAsFixed(1), AppColor.textSecondary),
 
           // Countdown Badge
@@ -791,143 +794,264 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       isScrollControlled: true,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            return Container(
-              padding: const EdgeInsets.all(20),
-              constraints: const BoxConstraints(maxHeight: 650, maxWidth: 600),
-              decoration: BoxDecoration(
-                color: AppColor.backgroundCard,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: AppColor.subtleShadow,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
+            final isDark = AppColor.isDark;
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                      constraints: const BoxConstraints(maxHeight: 680),
+                      decoration: BoxDecoration(
+                        color: AppColor.cardSurface.withValues(alpha: isDark ? 0.88 : 0.93),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                        boxShadow: AppColor.elevationShadow,
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Icon(Icons.tune, color: AppColor.accent, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              '차트 & 보조지표 종합 설정',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            // Top Drag Handle Pill
+                            Center(
+                              child: Container(
+                                width: 38,
+                                height: 4,
+                                margin: const EdgeInsets.only(bottom: 14),
+                                decoration: BoxDecoration(
+                                  color: AppColor.textDisabled.withValues(alpha: 0.35),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              ),
+                            ),
+
+                            // Title Header
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: AppColor.accent.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(Icons.tune_rounded, color: AppColor.accent, size: 18),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      '차트 & 보조지표 종합 설정',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColor.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.close_rounded, color: AppColor.textSecondary, size: 20),
+                                  onPressed: () => Navigator.pop(ctx),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            // 1. 차트 형태 선택
+                            Text('🎨 차트 캔들 스타일', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: ChartStyle.values.map((s) {
+                                final isSel = _chartStyle == s;
+                                final infoId = s == ChartStyle.heikinAshi ? 'heikin_ashi' : null;
+                                return _buildSelectableChip(
+                                  context: context,
+                                  label: s.label,
+                                  icon: s.icon,
+                                  isSelected: isSel,
+                                  infoId: infoId,
+                                  onSelected: () {
+                                    setState(() => _chartStyle = s);
+                                    setModalState(() {});
+                                  },
+                                  onToggle: (enabled) {
+                                    if (enabled) {
+                                      setState(() => _chartStyle = s);
+                                    } else {
+                                      setState(() => _chartStyle = ChartStyle.candles);
+                                    }
+                                    setModalState(() {});
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // 2. 메인 오버레이 지표
+                            Text('📈 메인 오버레이 지표 (순수 Dart 자체 계산)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
+                            const SizedBox(height: 10),
+                            _buildSwitchTile(
+                              '단순이동평균 (SMA 7 / 25 / 99 / 200)',
+                              '단기, 중기, 장기 추세 평균선',
+                              _showMA,
+                              (val) {
+                                setState(() => _showMA = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'sma',
+                            ),
+                            _buildSwitchTile(
+                              '지수이동평균 (EMA 9 / 21 / 50 / 200)',
+                              '최신 가격 가중치가 높은 골든크로스 지표',
+                              _showEMA,
+                              (val) {
+                                setState(() => _showEMA = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'ema',
+                            ),
+                            _buildSwitchTile(
+                              '볼린저 밴드 (Bollinger Bands 20, 2.0)',
+                              '표준편차 기반 가격 변동성 채널 및 밴드 필',
+                              _showBB,
+                              (val) {
+                                setState(() => _showBB = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'bb',
+                            ),
+                            _buildSwitchTile(
+                              '파라볼릭 SAR (Parabolic Stop & Reverse)',
+                              '가속도 0.02, 한계 0.20 기반 추세 반전 도트',
+                              _showSAR,
+                              (val) {
+                                setState(() => _showSAR = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'sar',
+                            ),
+                            _buildSwitchTile(
+                              '슈퍼트렌드 (SuperTrend 10, 3.0)',
+                              'ATR 기반 자동 추세 지지/저항 및 매수/매도 밴드',
+                              _showSuperTrend,
+                              (val) {
+                                setState(() => _showSuperTrend = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'super_trend',
+                            ),
+                            _buildSwitchTile(
+                              'VWAP (거래량 가중 평균가)',
+                              '기관 투자자 필수 기준선 (Cumulative Price*Vol / Vol)',
+                              _showVWAP,
+                              (val) {
+                                setState(() => _showVWAP = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'vwap',
+                            ),
+                            _buildSwitchTile(
+                              '일목균형표 (Ichimoku Cloud)',
+                              '전환선(9), 기준선(26), 선행스팬 구름대',
+                              _showIchimoku,
+                              (val) {
+                                setState(() => _showIchimoku = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'ichimoku',
+                            ),
+                            const SizedBox(height: 20),
+
+                            // 3. 서브 패널 보조지표
+                            Text('📊 하단 서브 보조지표 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: SubIndicator.values.map((sub) {
+                                final isSel = _subIndicator == sub;
+                                final infoId = _getSubIndicatorInfoId(sub);
+                                return _buildSelectableChip(
+                                  context: context,
+                                  label: sub.label,
+                                  isSelected: isSel,
+                                  infoId: infoId,
+                                  activeColor: AppColor.secondary,
+                                  onSelected: () {
+                                    setState(() => _subIndicator = sub);
+                                    setModalState(() {});
+                                  },
+                                  onToggle: (enabled) {
+                                    if (enabled) {
+                                      setState(() => _subIndicator = sub);
+                                    } else {
+                                      setState(() => _subIndicator = SubIndicator.none);
+                                    }
+                                    setModalState(() {});
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // 4. 차트 표시 편의 옵션
+                            Text('⚙️ 부가 디스플레이 옵션', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
+                            const SizedBox(height: 10),
+                            _buildSwitchTile(
+                              '로그 스케일 (Logarithmic Y-Axis)',
+                              '가격 비율(%) 중심의 수직 축 스케일링',
+                              _useLogScale,
+                              (val) {
+                                setState(() => _useLogScale = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'log_scale',
+                            ),
+                            _buildSwitchTile(
+                              '그리드 봇 주문선 표시',
+                              '미체결 매수/익절 주문의 실시간 가격 수평선',
+                              _showGridOrders,
+                              (val) {
+                                setState(() => _showGridOrders = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'grid_order_lines',
+                            ),
+                            _buildSwitchTile(
+                              '최고가/최저가 뱃지 표시',
+                              '현재 화면 내 최고가(High) / 최저가(Low) 자동 마킹',
+                              _showHighLowBadges,
+                              (val) {
+                                setState(() => _showHighLowBadges = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'high_low_badges',
+                            ),
+                            _buildSwitchTile(
+                              '다음 봉 마감 카운트다운 타이머',
+                              '선택한 타임프레임의 캔들 마감까지 잔여 분:초 표시',
+                              _showCountdown,
+                              (val) {
+                                setState(() => _showCountdown = val);
+                                setModalState(() {});
+                              },
+                              infoId: 'countdown_timer',
                             ),
                           ],
                         ),
-                        IconButton(
-                          icon: Icon(Icons.close, color: AppColor.textSecondary, size: 20),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
-
-                    // 1. 차트 형태 선택
-                    const Text('🎨 차트 캔들 스타일', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: ChartStyle.values.map((s) {
-                        final isSel = _chartStyle == s;
-                        return ChoiceChip(
-                          avatar: Icon(s.icon, size: 14, color: isSel ? Colors.white : AppColor.textSecondary),
-                          label: Text(s.label),
-                          selected: isSel,
-                          selectedColor: AppColor.primary,
-                          backgroundColor: AppColor.inputSurface,
-                          labelStyle: TextStyle(fontSize: 11, color: isSel ? Colors.white : AppColor.textSecondary),
-                          onSelected: (_) {
-                            setState(() => _chartStyle = s);
-                            setModalState(() {});
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // 2. 메인 오버레이 지표
-                    const Text('📈 메인 오버레이 지표 (순수 Dart 자체 계산)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
-                    const SizedBox(height: 8),
-                    _buildSwitchTile('단순이동평균 (SMA 7 / 25 / 99 / 200)', '단기, 중기, 장기 추세 평균선', _showMA, (val) {
-                      setState(() => _showMA = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('지수이동평균 (EMA 9 / 21 / 50 / 200)', '최신 가격 가중치가 높은 골든크로스 지표', _showEMA, (val) {
-                      setState(() => _showEMA = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('볼린저 밴드 (Bollinger Bands 20, 2.0)', '표준편차 기반 가격 변동성 채널 및 밴드 필', _showBB, (val) {
-                      setState(() => _showBB = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('파라볼릭 SAR (Parabolic Stop & Reverse)', '가속도 0.02, 한계 0.20 기반 추세 반전 도트', _showSAR, (val) {
-                      setState(() => _showSAR = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('슈퍼트렌드 (SuperTrend 10, 3.0)', 'ATR 기반 자동 추세 지지/저항 및 매수/매도 밴드', _showSuperTrend, (val) {
-                      setState(() => _showSuperTrend = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('VWAP (거래량 가중 평균가)', '기관 투자자 필수 기준선 (Cumulative Price*Vol / Vol)', _showVWAP, (val) {
-                      setState(() => _showVWAP = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('일목균형표 (Ichimoku Cloud)', '전환선(9), 기준선(26), 선행스팬 구름대', _showIchimoku, (val) {
-                      setState(() => _showIchimoku = val);
-                      setModalState(() {});
-                    }),
-                    const SizedBox(height: 20),
-
-                    // 3. 서브 패널 보조지표
-                    const Text('📊 하단 서브 보조지표 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: SubIndicator.values.map((sub) {
-                        final isSel = _subIndicator == sub;
-                        return ChoiceChip(
-                          label: Text(sub.label),
-                          selected: isSel,
-                          selectedColor: AppColor.secondary,
-                          backgroundColor: AppColor.inputSurface,
-                          labelStyle: TextStyle(fontSize: 11, color: isSel ? Colors.white : AppColor.textSecondary),
-                          onSelected: (_) {
-                            setState(() => _subIndicator = sub);
-                            setModalState(() {});
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // 4. 차트 표시 편의 옵션
-                    const Text('⚙️ 부가 디스플레이 옵션', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColor.accent)),
-                    const SizedBox(height: 8),
-                    _buildSwitchTile('로그 스케일 (Logarithmic Y-Axis)', '가격 비율(%) 중심의 수직 축 스케일링', _useLogScale, (val) {
-                      setState(() => _useLogScale = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('그리드 봇 주문선 표시', '미체결 매수/익절 주문의 실시간 가격 수평선', _showGridOrders, (val) {
-                      setState(() => _showGridOrders = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('최고가/최저가 뱃지 표시', '현재 화면 내 최고가(High) / 최저가(Low) 자동 마킹', _showHighLowBadges, (val) {
-                      setState(() => _showHighLowBadges = val);
-                      setModalState(() {});
-                    }),
-                    _buildSwitchTile('다음 봉 마감 카운트다운 타이머', '선택한 타임프레임의 캔들 마감까지 잔여 분:초 표시', _showCountdown, (val) {
-                      setState(() => _showCountdown = val);
-                      setModalState(() {});
-                    }),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -937,13 +1061,20 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
     );
   }
 
-  Widget _buildSwitchTile(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+  Widget _buildSwitchTile(
+    String title,
+    String subtitle,
+    bool value,
+    ValueChanged<bool> onChanged, {
+    String? infoId,
+  }) {
+    final isDark = AppColor.isDark;
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColor.cardSurface.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColor.inputSurface.withValues(alpha: isDark ? 0.45 : 0.65),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
@@ -951,19 +1082,156 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                Text(subtitle, style: TextStyle(fontSize: 10, color: AppColor.textSecondary)),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColor.textPrimary,
+                        ),
+                      ),
+                    ),
+                    if (infoId != null) ...[
+                      const SizedBox(width: 6),
+                      InkWell(
+                        onTap: () {
+                          IndicatorGuideDialog.show(
+                            context,
+                            infoId,
+                            isEnabled: value,
+                            onToggle: onChanged,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: Icon(
+                            Icons.info_outline_rounded,
+                            size: 16,
+                            color: AppColor.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 10, color: AppColor.textSecondary),
+                ),
               ],
             ),
           ),
           Switch(
             value: value,
             activeThumbColor: AppColor.accent,
+            activeTrackColor: AppColor.accent.withValues(alpha: 0.35),
+            inactiveThumbColor: AppColor.textDisabled,
+            inactiveTrackColor: AppColor.inputSurface,
             onChanged: onChanged,
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildSelectableChip({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onSelected,
+    String? infoId,
+    IconData? icon,
+    Color activeColor = AppColor.primary,
+    ValueChanged<bool>? onToggle,
+  }) {
+    final isDark = AppColor.isDark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isSelected
+            ? activeColor.withValues(alpha: isDark ? 0.35 : 0.2)
+            : AppColor.inputSurface.withValues(alpha: isDark ? 0.45 : 0.65),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onSelected,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  Icon(
+                    icon,
+                    size: 13,
+                    color: isSelected ? AppColor.accent : AppColor.textSecondary,
+                  ),
+                  const SizedBox(width: 5),
+                ],
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? AppColor.textPrimary : AppColor.textSecondary,
+                  ),
+                ),
+                if (infoId != null) ...[
+                  const SizedBox(width: 5),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      IndicatorGuideDialog.show(
+                        context,
+                        infoId,
+                        isEnabled: isSelected,
+                        onToggle: onToggle ?? (_) => onSelected(),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        size: 13,
+                        color: isSelected ? AppColor.accent : AppColor.textDisabled,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String? _getSubIndicatorInfoId(SubIndicator sub) {
+    switch (sub) {
+      case SubIndicator.rsi:
+        return 'rsi';
+      case SubIndicator.macd:
+        return 'macd';
+      case SubIndicator.kdj:
+        return 'kdj';
+      case SubIndicator.wr:
+        return 'wr';
+      case SubIndicator.cci:
+        return 'cci';
+      case SubIndicator.atr:
+        return 'atr';
+      case SubIndicator.obv:
+        return 'obv';
+      default:
+        return null;
+    }
   }
 }
 
