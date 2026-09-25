@@ -7,9 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../../models/candle_data.dart';
 import '../../models/trade_order.dart';
+import '../../routes/app_routes.dart';
 import '../../style/app_color.dart';
 import 'technical_indicator_calculator.dart';
-import 'indicator_guide_dialog.dart';
 
 enum ChartStyle {
   candles('캔들', Icons.candlestick_chart),
@@ -857,9 +857,39 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                                     ),
                                   ],
                                 ),
-                                IconButton(
-                                  icon: Icon(Icons.close_rounded, color: AppColor.textSecondary, size: 20),
-                                  onPressed: () => Navigator.pop(ctx),
+                                Row(
+                                  children: [
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: () {
+                                        Navigator.pop(ctx);
+                                        Navigator.pushNamed(context, AppRoutes.indicators);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColor.accent.withValues(alpha: 0.12),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.auto_stories_rounded, size: 13, color: AppColor.accent),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              '가이드 연구소 ↗',
+                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColor.accent),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      icon: Icon(Icons.close_rounded, color: AppColor.textSecondary, size: 20),
+                                      onPressed: () => Navigator.pop(ctx),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -1098,11 +1128,10 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                       const SizedBox(width: 6),
                       InkWell(
                         onTap: () {
-                          IndicatorGuideDialog.show(
+                          Navigator.pop(context); // Close bottom sheet
+                          Navigator.pushNamed(
                             context,
-                            infoId,
-                            isEnabled: value,
-                            onToggle: onChanged,
+                            AppRoutes.indicatorDetail(infoId),
                           );
                         },
                         borderRadius: BorderRadius.circular(12),
@@ -1188,11 +1217,10 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                   InkWell(
                     borderRadius: BorderRadius.circular(10),
                     onTap: () {
-                      IndicatorGuideDialog.show(
+                      Navigator.pop(context); // Close bottom sheet
+                      Navigator.pushNamed(
                         context,
-                        infoId,
-                        isEnabled: isSelected,
-                        onToggle: onToggle ?? (_) => onSelected(),
+                        AppRoutes.indicatorDetail(infoId),
                       );
                     },
                     child: Padding(

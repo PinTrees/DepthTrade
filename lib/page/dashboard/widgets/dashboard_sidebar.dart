@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../../engine/grid_bot_engine.dart';
 import '../../../models/crypto_symbol.dart';
+import '../../../routes/app_routes.dart';
 import '../../../service/auth_service.dart';
 import '../../../style/style.dart';
 import 'coin_selector_dialog.dart';
@@ -89,6 +90,14 @@ class DashboardSidebar extends StatelessWidget {
                   selected: currentIndex == 4,
                   collapsed: isCollapsed,
                   onTap: () => onTabSelected(4),
+                ),
+                _SidebarMenuItem(
+                  icon: Icons.auto_stories_rounded,
+                  label: '보조지표 가이드',
+                  subtitle: '/indicators',
+                  selected: false,
+                  collapsed: isCollapsed,
+                  onTap: () => Navigator.pushNamed(context, AppRoutes.indicators),
                 ),
               ],
             ),

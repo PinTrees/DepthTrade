@@ -11,6 +11,10 @@ class AppRoutes {
   static const String settings = '/dashboard/settings';
   static const String apiSettings = '/dashboard/api';
 
+  // Indicator Guide Routes
+  static const String indicators = '/indicators';
+  static String indicatorDetail(String id) => '/indicators/$id';
+
   /// URL 경로로부터 대시보드 탭 인덱스(0~4) 매핑
   static int tabFromRoute(String? route) {
     if (route == null) return 0;

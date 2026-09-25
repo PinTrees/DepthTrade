@@ -30,6 +30,8 @@ class IndicatorMeta {
     return _registry[id] ?? _defaultMeta(id);
   }
 
+  static List<IndicatorMeta> get all => _registry.values.toList();
+
   static IndicatorMeta _defaultMeta(String id) => IndicatorMeta(
         id: id,
         title: id.toUpperCase(),
@@ -610,7 +612,7 @@ class IndicatorGuideDialog extends StatelessWidget {
           children: [
             // Virtual Candlestick & Indicator Simulation Canvas
             CustomPaint(
-              painter: _VirtualIndicatorChartPainter(
+              painter: VirtualIndicatorChartPainter(
                 indicatorId: meta.id,
                 isDark: isDark,
                 primaryColor: meta.categoryColor,
@@ -712,12 +714,12 @@ class IndicatorGuideDialog extends StatelessWidget {
 }
 
 /// Real mathematical painter drawing simulated candlesticks and indicators
-class _VirtualIndicatorChartPainter extends CustomPainter {
+class VirtualIndicatorChartPainter extends CustomPainter {
   final String indicatorId;
   final bool isDark;
   final Color primaryColor;
 
-  _VirtualIndicatorChartPainter({
+  VirtualIndicatorChartPainter({
     required this.indicatorId,
     required this.isDark,
     required this.primaryColor,
@@ -1007,6 +1009,6 @@ class _VirtualIndicatorChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _VirtualIndicatorChartPainter oldDelegate) =>
+  bool shouldRepaint(covariant VirtualIndicatorChartPainter oldDelegate) =>
       oldDelegate.indicatorId != indicatorId || oldDelegate.isDark != isDark;
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'firebase_options.dart';
 import 'page/dashboard/dashboard_page.dart';
+import 'page/indicators/indicator_detail_page.dart';
 import 'page/landing/landing_page.dart';
 import 'routes/app_routes.dart';
 import 'style/style.dart';
@@ -67,6 +68,7 @@ class _DepthTradeAppState extends State<DepthTradeApp> {
             AppRoutes.orders: (context) => const DashboardPage(initialTab: 3),
             AppRoutes.settings: (context) => const DashboardPage(initialTab: 4),
             AppRoutes.apiSettings: (context) => const DashboardPage(initialTab: 4),
+            AppRoutes.indicators: (context) => const IndicatorDetailPage(),
           },
           onGenerateRoute: (settings) {
             final name = settings.name ?? AppRoutes.root;
@@ -84,6 +86,15 @@ class _DepthTradeAppState extends State<DepthTradeApp> {
               return MaterialPageRoute(
                 settings: settings,
                 builder: (_) => DashboardPage(initialTab: tabIndex),
+              );
+            }
+
+            if (cleanPath.startsWith('/indicators')) {
+              final segments = cleanPath.split('/').where((s) => s.isNotEmpty).toList();
+              final id = segments.length > 1 ? segments[1] : 'sma';
+              return MaterialPageRoute(
+                settings: settings,
+                builder: (_) => IndicatorDetailPage(initialIndicatorId: id),
               );
             }
 
