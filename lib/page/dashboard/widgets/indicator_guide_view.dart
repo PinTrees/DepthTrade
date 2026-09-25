@@ -94,12 +94,6 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                     child: _buildSidebar(filteredList, isDark),
                   ),
 
-                  // Divider line
-                  Container(
-                    width: 1,
-                    color: AppColor.divider.withValues(alpha: 0.15),
-                  ),
-
                   // 2. Main Indicator Simulation & Guide Content Area
                   Expanded(
                     child: _buildMainContent(meta, allIndicators, isDark),
@@ -261,9 +255,6 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
         decoration: BoxDecoration(
           color: AppColor.inputSurface,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColor.divider.withValues(alpha: 0.12),
-          ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextField(
@@ -316,9 +307,6 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                         ? AppColor.primary.withValues(alpha: 0.22)
                         : AppColor.inputSurface.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(6),
-                    border: isSelected
-                        ? Border.all(color: AppColor.accent.withValues(alpha: 0.5), width: 1)
-                        : null,
                   ),
                   child: Text(
                     cat,
@@ -367,9 +355,6 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
                       ? item.categoryColor.withValues(alpha: isDark ? 0.22 : 0.15)
                       : AppColor.inputSurface,
                   borderRadius: BorderRadius.circular(10),
-                  border: isSelected
-                      ? Border.all(color: item.categoryColor.withValues(alpha: 0.45), width: 1)
-                      : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -746,11 +731,13 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.inputSurface,
+                  foregroundColor: AppColor.textSecondary,
+                  elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  side: BorderSide(color: AppColor.inputSurface),
                 ),
                 icon: const Icon(Icons.arrow_back, size: 14),
                 label: Text(
@@ -763,11 +750,13 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.inputSurface,
+                  foregroundColor: AppColor.textSecondary,
+                  elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  side: BorderSide(color: AppColor.inputSurface),
                 ),
                 icon: const Icon(Icons.arrow_forward, size: 14),
                 label: Text(
@@ -854,21 +843,6 @@ class _IndicatorSidebarItemState extends State<_IndicatorSidebarItem> {
                   ? item.categoryColor.withValues(alpha: widget.isDark ? 0.18 : 0.12)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
-              border: isSelected
-                  ? Border.all(
-                      color: item.categoryColor.withValues(alpha: 0.35),
-                      width: 1,
-                    )
-                  : null,
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: item.categoryColor.withValues(alpha: 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
             ),
             child: Row(
               children: [
@@ -879,10 +853,6 @@ class _IndicatorSidebarItemState extends State<_IndicatorSidebarItem> {
                   decoration: BoxDecoration(
                     color: item.categoryColor.withValues(alpha: isSelected ? 0.22 : 0.12),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: item.categoryColor.withValues(alpha: isSelected ? 0.45 : 0.18),
-                      width: 1,
-                    ),
                   ),
                   child: Icon(
                     item.icon,
@@ -941,12 +911,6 @@ class _IndicatorSidebarItemState extends State<_IndicatorSidebarItem> {
                     decoration: BoxDecoration(
                       color: item.categoryColor,
                       borderRadius: BorderRadius.circular(2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: item.categoryColor.withValues(alpha: 0.6),
-                          blurRadius: 4,
-                        ),
-                      ],
                     ),
                   ),
                 ],
