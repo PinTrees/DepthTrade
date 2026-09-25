@@ -50,7 +50,7 @@ class DashboardSidebar extends StatelessWidget {
                 _SidebarMenuItem(
                   icon: Icons.candlestick_chart,
                   label: '실시간 터미널',
-                  subtitle: '차트 & 오더북 감시',
+                  subtitle: '/dashboard/terminal',
                   selected: currentIndex == 0,
                   collapsed: isCollapsed,
                   onTap: () => onTabSelected(0),
@@ -58,7 +58,7 @@ class DashboardSidebar extends StatelessWidget {
                 _SidebarMenuItem(
                   icon: Icons.tune,
                   label: '전략 파라미터',
-                  subtitle: '심도 그리드 & 수량 승수',
+                  subtitle: '/dashboard/strategy',
                   selected: currentIndex == 1,
                   collapsed: isCollapsed,
                   onTap: () => onTabSelected(1),
@@ -66,7 +66,7 @@ class DashboardSidebar extends StatelessWidget {
                 _SidebarMenuItem(
                   icon: Icons.science,
                   label: '백테스트 랩',
-                  subtitle: '과거 캔들 전략 검증',
+                  subtitle: '/dashboard/backtest',
                   selected: currentIndex == 2,
                   collapsed: isCollapsed,
                   onTap: () => onTabSelected(2),
@@ -74,7 +74,7 @@ class DashboardSidebar extends StatelessWidget {
                 _SidebarMenuItem(
                   icon: Icons.receipt_long,
                   label: '주문 & 체결 내역',
-                  subtitle: '미체결 및 페어 익절 이력',
+                  subtitle: '/dashboard/orders',
                   selected: currentIndex == 3,
                   collapsed: isCollapsed,
                   onTap: () => onTabSelected(3),
@@ -82,7 +82,7 @@ class DashboardSidebar extends StatelessWidget {
                 _SidebarMenuItem(
                   icon: Icons.vpn_key,
                   label: 'API & 계정 설정',
-                  subtitle: 'Bitget 키 & 거래 모드',
+                  subtitle: '/dashboard/settings',
                   selected: currentIndex == 4,
                   collapsed: isCollapsed,
                   onTap: () => onTabSelected(4),

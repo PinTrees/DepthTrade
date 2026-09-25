@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../engine/grid_bot_engine.dart';
 import '../../models/candle_data.dart';
 import '../../models/crypto_symbol.dart';
+import '../../routes/app_routes.dart';
 import '../../service/bitget_api_service.dart';
 import '../../style/app_color.dart';
 import '../../widget/chart/orderbook_depth_widget.dart';
@@ -18,14 +20,15 @@ import 'widgets/order_table_view.dart';
 import 'widgets/trade_editor_panel.dart';
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({super.key});
+  final int initialTab;
+  const DashboardPage({super.key, this.initialTab = 0});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  int _selectedTab = 0;
+  late int _selectedTab;
   bool _isSidebarCollapsed = false;
 
   String _activeSymbol = '';
@@ -38,6 +41,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
+    _selectedTab = widget.initialTab;
     GridBotEngine.instance.initialize(null);
     _activeSymbol = GridBotEngine.instance.config.symbol;
     GridBotEngine.instance.addListener(_onEngineChanged);
@@ -46,6 +50,24 @@ class _DashboardPageState extends State<DashboardPage> {
     _marketDataTimer = Timer.periodic(const Duration(seconds: 3), (_) {
       _fetchMarketData();
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTab != oldWidget.initialTab && widget.initialTab != _selectedTab) {
+      setState(() => _selectedTab = widget.initialTab);
+    }
+  }
+
+  void _onTabSelected(int index) {
+    if (_selectedTab == index) return;
+    setState(() => _selectedTab = index);
+
+    final route = AppRoutes.routeFromTab(index);
+    SystemNavigator.routeInformationUpdated(
+      uri: Uri.parse(route),
+    );
   }
 
   void _onEngineChanged() {
@@ -117,7 +139,7 @@ class _DashboardPageState extends State<DashboardPage> {
               // 1. Rescene-styled Left Navigation Sidebar
               DashboardSidebar(
                 currentIndex: _selectedTab,
-                onTabSelected: (index) => setState(() => _selectedTab = index),
+                onTabSelected: _onTabSelected,
                 isCollapsed: collapsed,
                 onToggleCollapse: () {
                   setState(() => _isSidebarCollapsed = !_isSidebarCollapsed);

@@ -4,6 +4,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'firebase_options.dart';
 import 'page/dashboard/dashboard_page.dart';
 import 'page/landing/landing_page.dart';
+import 'routes/app_routes.dart';
 import 'style/app_theme.dart';
 
 void main() async {
@@ -34,7 +35,6 @@ class _DepthTradeAppState extends State<DepthTradeApp> {
   @override
   void reassemble() {
     super.reassemble();
-    // 핫 리로드 및 재빌드 시 이미지 캐시 정리
     debugPrint("♻️ Hot Reload: Clearing Image Cache");
     PaintingBinding.instance.imageCache.clear();
     PaintingBinding.instance.imageCache.clearLiveImages();
@@ -46,19 +46,45 @@ class _DepthTradeAppState extends State<DepthTradeApp> {
       title: 'DepthTrade | Automated Grid Trading',
       theme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      initialRoute: AppRoutes.root,
       routes: {
-        '/': (context) => const LandingPage(),
-        '/landing': (context) => const LandingPage(),
-        '/dashboard': (context) => const DashboardPage(),
+        AppRoutes.root: (context) => const LandingPage(),
+        AppRoutes.landing: (context) => const LandingPage(),
+        AppRoutes.dashboard: (context) => const DashboardPage(initialTab: 0),
+        AppRoutes.terminal: (context) => const DashboardPage(initialTab: 0),
+        AppRoutes.strategy: (context) => const DashboardPage(initialTab: 1),
+        AppRoutes.backtest: (context) => const DashboardPage(initialTab: 2),
+        AppRoutes.orders: (context) => const DashboardPage(initialTab: 3),
+        AppRoutes.settings: (context) => const DashboardPage(initialTab: 4),
+        AppRoutes.apiSettings: (context) => const DashboardPage(initialTab: 4),
       },
       onGenerateRoute: (settings) {
-        if (settings.name == '/dashboard') {
-          return MaterialPageRoute(builder: (_) => const DashboardPage());
+        final name = settings.name ?? AppRoutes.root;
+        final cleanPath = name.split('?').first.trim().toLowerCase();
+
+        if (cleanPath == AppRoutes.root || cleanPath == AppRoutes.landing) {
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => const LandingPage(),
+          );
         }
-        return MaterialPageRoute(builder: (_) => const LandingPage());
+
+        if (cleanPath.startsWith('/dashboard')) {
+          final tabIndex = AppRoutes.tabFromRoute(cleanPath);
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => DashboardPage(initialTab: tabIndex),
+          );
+        }
+
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const LandingPage(),
+        );
       },
-      onUnknownRoute: (_) => MaterialPageRoute(builder: (_) => const LandingPage()),
+      onUnknownRoute: (_) => MaterialPageRoute(
+        builder: (_) => const LandingPage(),
+      ),
     );
   }
 }
