@@ -22,6 +22,7 @@ class IndicatorGuideView extends StatefulWidget {
 class _IndicatorGuideViewState extends State<IndicatorGuideView> {
   late String _currentId;
   String _searchQuery = '';
+  String _selectedCategory = '전체';
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -58,193 +59,192 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = AppColor.isDark;
-    final allIndicators = IndicatorMeta.all;
-    final meta = IndicatorMeta.get(_currentId);
+    return ListenableBuilder(
+      listenable: ThemeService.instance,
+      builder: (context, _) {
+        final isDark = ThemeService.instance.isDark;
+        final allIndicators = IndicatorMeta.all;
+        final meta = IndicatorMeta.get(_currentId);
 
-    final filteredList = allIndicators.where((item) {
-      if (_searchQuery.trim().isEmpty) return true;
-      final q = _searchQuery.toLowerCase();
-      return item.title.toLowerCase().contains(q) ||
-          item.englishName.toLowerCase().contains(q) ||
-          item.category.toLowerCase().contains(q) ||
-          item.summary.toLowerCase().contains(q);
-    }).toList();
+        final filteredList = allIndicators.where((item) {
+          if (_selectedCategory != '전체') {
+            if (!item.category.contains(_selectedCategory)) {
+              return false;
+            }
+          }
+          if (_searchQuery.trim().isEmpty) return true;
+          final q = _searchQuery.toLowerCase();
+          return item.title.toLowerCase().contains(q) ||
+              item.englishName.toLowerCase().contains(q) ||
+              item.category.toLowerCase().contains(q) ||
+              item.summary.toLowerCase().contains(q);
+        }).toList();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 960;
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 960;
 
-        if (isWide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 1. Left Indicator List Sidebar
-              SizedBox(
-                width: 290,
-                child: _buildSidebar(filteredList, isDark),
-              ),
+            if (isWide) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 1. Left Indicator List Sidebar (Width 290)
+                  SizedBox(
+                    width: 290,
+                    child: _buildSidebar(filteredList, isDark),
+                  ),
 
-              // Divider line
-              Container(
-                width: 1,
-                color: AppColor.divider.withValues(alpha: 0.15),
-              ),
+                  // Divider line
+                  Container(
+                    width: 1,
+                    color: AppColor.divider.withValues(alpha: 0.15),
+                  ),
 
-              // 2. Main Indicator Simulation & Guide Content Area
-              Expanded(
-                child: _buildMainContent(meta, allIndicators, isDark),
-              ),
-            ],
-          );
-        } else {
-          // Mobile & Tablet Layout
-          return Column(
-            children: [
-              // Top horizontal chips
-              _buildMobileIndicatorChips(allIndicators, isDark),
+                  // 2. Main Indicator Simulation & Guide Content Area
+                  Expanded(
+                    child: _buildMainContent(meta, allIndicators, isDark),
+                  ),
+                ],
+              );
+            } else {
+              // Mobile & Tablet Layout
+              return Column(
+                children: [
+                  // Top horizontal chips
+                  _buildMobileIndicatorChips(allIndicators, isDark),
 
-              // Main Content
-              Expanded(
-                child: _buildMainContent(meta, allIndicators, isDark),
-              ),
-            ],
-          );
-        }
+                  // Main Content
+                  Expanded(
+                    child: _buildMainContent(meta, allIndicators, isDark),
+                  ),
+                ],
+              );
+            }
+          },
+        );
       },
     );
   }
 
-  /// 1. Indicator Sidebar (Desktop)
+  /// 1. Indicator Sidebar (Desktop) - Unifies with DashboardSidebar & DepthTrade Design System
   Widget _buildSidebar(List<IndicatorMeta> list, bool isDark) {
     return Container(
-      color: AppColor.backgroundCard.withValues(alpha: 0.5),
+      decoration: BoxDecoration(
+        color: AppColor.backgroundCard.withValues(alpha: 0.95),
+        boxShadow: AppColor.subtleShadow,
+      ),
       child: Column(
         children: [
-          // Search & Count Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) => setState(() => _searchQuery = val),
-              style: TextStyle(fontSize: 12, color: AppColor.textPrimary),
-              decoration: InputDecoration(
-                hintText: '지표명 또는 카테고리 검색...',
-                hintStyle: TextStyle(fontSize: 11, color: AppColor.textDisabled),
-                prefixIcon: Icon(Icons.search, size: 16, color: AppColor.textSecondary),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 14),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColor.inputSurface,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
+          // Sidebar Header (Branding & Indicator Count)
+          _buildSidebarHeader(list),
 
-          // Header Label
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Search Input Bar
+          _buildSidebarSearch(),
+
+          // Category Quick Filter Chips
+          _buildSidebarCategoryChips(isDark),
+          const SizedBox(height: 4),
+
+          // Indicator Item List
+          Expanded(
+            child: list.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        '검색 결과와 일치하는 지표가 없습니다.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColor.textDisabled,
+                        ),
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    itemCount: list.length,
+                    itemBuilder: (context, idx) {
+                      final item = list[idx];
+                      return _IndicatorSidebarItem(
+                        item: item,
+                        isSelected: item.id == _currentId,
+                        isDark: isDark,
+                        onTap: () => _selectIndicator(item.id),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Sidebar Branding Header
+  Widget _buildSidebarHeader(List<IndicatorMeta> list) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 16, 12, 10),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColor.accent, AppColor.primary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColor.accent.withValues(alpha: 0.35),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 18),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '보조지표 라이브러리',
+                  'INDICATOR LAB',
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColor.textDisabled,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.1,
+                    color: AppColor.textPrimary,
                   ),
                 ),
                 Text(
-                  '${list.length}개 지표',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+                  'TECHNICAL ANALYSIS',
+                  style: TextStyle(
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.8,
                     color: AppColor.accent,
-                    fontFamily: 'monospace',
                   ),
                 ),
               ],
             ),
           ),
-
-          // Indicator Item List
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              itemCount: list.length,
-              itemBuilder: (context, idx) {
-                final item = list[idx];
-                final isSelected = item.id == _currentId;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () => _selectIndicator(item.id),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? item.categoryColor.withValues(alpha: isDark ? 0.2 : 0.12)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: item.categoryColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.title,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                    color: isSelected ? AppColor.textPrimary : AppColor.textSecondary,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  item.category,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: item.categoryColor.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (isSelected)
-                            Icon(Icons.chevron_right, size: 16, color: item.categoryColor),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColor.accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '${list.length}개',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: AppColor.accent,
+                fontFamily: 'monospace',
+              ),
             ),
           ),
         ],
@@ -252,13 +252,98 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
     );
   }
 
+  /// Sidebar Search Bar
+  Widget _buildSidebarSearch() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      child: Container(
+        height: 38,
+        decoration: BoxDecoration(
+          color: AppColor.inputSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColor.divider.withValues(alpha: 0.12),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextField(
+          controller: _searchController,
+          onChanged: (val) => setState(() => _searchQuery = val),
+          style: TextStyle(fontSize: 12, color: AppColor.textPrimary),
+          decoration: InputDecoration(
+            isDense: true,
+            border: InputBorder.none,
+            icon: Icon(Icons.search, size: 16, color: AppColor.textSecondary),
+            hintText: '지표명 또는 카테고리 검색...',
+            hintStyle: TextStyle(fontSize: 11, color: AppColor.textDisabled),
+            contentPadding: const EdgeInsets.symmetric(vertical: 10),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: const Icon(Icons.clear, size: 14),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                  )
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Sidebar Category Chips
+  Widget _buildSidebarCategoryChips(bool isDark) {
+    final categories = const ['전체', '추세', '변동성', '오실레이터', '거래량'];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: categories.map((cat) {
+            final isSelected = _selectedCategory == cat;
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: InkWell(
+                onTap: () => setState(() => _selectedCategory = cat),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColor.primary.withValues(alpha: 0.22)
+                        : AppColor.inputSurface.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(6),
+                    border: isSelected
+                        ? Border.all(color: AppColor.accent.withValues(alpha: 0.5), width: 1)
+                        : null,
+                  ),
+                  child: Text(
+                    cat,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected ? AppColor.accent : AppColor.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   /// Mobile & Tablet Horizontal Chips
   Widget _buildMobileIndicatorChips(List<IndicatorMeta> list, bool isDark) {
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      height: 52,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: AppColor.cardSurface.withValues(alpha: 0.6),
+        color: AppColor.backgroundCard.withValues(alpha: 0.95),
         boxShadow: AppColor.subtleShadow,
       ),
       child: ListView.builder(
@@ -272,33 +357,30 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: InkWell(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(10),
               onTap: () => _selectIndicator(item.id),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? item.categoryColor.withValues(alpha: 0.25)
+                      ? item.categoryColor.withValues(alpha: isDark ? 0.22 : 0.15)
                       : AppColor.inputSurface,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(10),
+                  border: isSelected
+                      ? Border.all(color: item.categoryColor.withValues(alpha: 0.45), width: 1)
+                      : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: item.categoryColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                    Icon(item.icon, size: 14, color: item.categoryColor),
                     const SizedBox(width: 6),
                     Text(
                       item.title.split(' ').first,
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 11.5,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                         color: isSelected ? AppColor.textPrimary : AppColor.textSecondary,
                       ),
                     ),
@@ -724,3 +806,156 @@ class _IndicatorGuideViewState extends State<IndicatorGuideView> {
     );
   }
 }
+
+/// Rescene-styled Interactive Indicator Sidebar Item matching DashboardSidebar
+class _IndicatorSidebarItem extends StatefulWidget {
+  final IndicatorMeta item;
+  final bool isSelected;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _IndicatorSidebarItem({
+    required this.item,
+    required this.isSelected,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  State<_IndicatorSidebarItem> createState() => _IndicatorSidebarItemState();
+}
+
+class _IndicatorSidebarItemState extends State<_IndicatorSidebarItem> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final isSelected = widget.isSelected;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      child: AnimatedScale(
+        scale: _pressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 110),
+        curve: Curves.easeOutCubic,
+        child: InkWell(
+          onTap: widget.onTap,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTapCancel: () => setState(() => _pressed = false),
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 170),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? item.categoryColor.withValues(alpha: widget.isDark ? 0.18 : 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              border: isSelected
+                  ? Border.all(
+                      color: item.categoryColor.withValues(alpha: 0.35),
+                      width: 1,
+                    )
+                  : null,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: item.categoryColor.withValues(alpha: 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                // Icon Box Container (matches DashboardSidebar & CoinSelector)
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: item.categoryColor.withValues(alpha: isSelected ? 0.22 : 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: item.categoryColor.withValues(alpha: isSelected ? 0.45 : 0.18),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    item.icon,
+                    size: 17,
+                    color: item.categoryColor,
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Title & Category Badge
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item.title,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected ? AppColor.textPrimary : AppColor.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: item.categoryColor.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              item.category,
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                                color: item.categoryColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Right Accent Pill (matches DashboardSidebar _SidebarMenuItem)
+                if (isSelected) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 4,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: item.categoryColor,
+                      borderRadius: BorderRadius.circular(2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: item.categoryColor.withValues(alpha: 0.6),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

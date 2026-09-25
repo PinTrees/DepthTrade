@@ -32,6 +32,51 @@ class IndicatorMeta {
 
   static List<IndicatorMeta> get all => _registry.values.toList();
 
+  IconData get icon {
+    switch (id) {
+      case 'sma':
+        return Icons.show_chart_rounded;
+      case 'ema':
+        return Icons.trending_up_rounded;
+      case 'bb':
+        return Icons.stacked_line_chart_rounded;
+      case 'sar':
+        return Icons.scatter_plot_rounded;
+      case 'super_trend':
+        return Icons.moving_rounded;
+      case 'vwap':
+        return Icons.equalizer_rounded;
+      case 'ichimoku':
+        return Icons.cloud_outlined;
+      case 'rsi':
+        return Icons.speed_rounded;
+      case 'macd':
+        return Icons.waterfall_chart_rounded;
+      case 'kdj':
+        return Icons.timeline_rounded;
+      case 'wr':
+        return Icons.waves_rounded;
+      case 'cci':
+        return Icons.tune_rounded;
+      case 'atr':
+        return Icons.straighten_rounded;
+      case 'obv':
+        return Icons.bar_chart_rounded;
+      case 'heikin_ashi':
+        return Icons.auto_graph_rounded;
+      case 'log_scale':
+        return Icons.format_line_spacing_rounded;
+      case 'grid_order_lines':
+        return Icons.grid_4x4_rounded;
+      case 'high_low_badges':
+        return Icons.stars_rounded;
+      case 'countdown_timer':
+        return Icons.timer_outlined;
+      default:
+        return Icons.analytics_outlined;
+    }
+  }
+
   static IndicatorMeta _defaultMeta(String id) => IndicatorMeta(
         id: id,
         title: id.toUpperCase(),
