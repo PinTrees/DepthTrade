@@ -46,6 +46,7 @@ class TradingViewChartViewer extends StatefulWidget {
   final List<TradeOrder> liveCloseOrders;
   final String activeInterval;
   final ValueChanged<String>? onIntervalChanged;
+  final ValueChanged<String>? onNavigateToIndicator;
 
   const TradingViewChartViewer({
     super.key,
@@ -55,6 +56,7 @@ class TradingViewChartViewer extends StatefulWidget {
     required this.liveCloseOrders,
     this.activeInterval = '15m',
     this.onIntervalChanged,
+    this.onNavigateToIndicator,
   });
 
   @override
@@ -863,7 +865,11 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                                       borderRadius: BorderRadius.circular(8),
                                       onTap: () {
                                         Navigator.pop(ctx);
-                                        Navigator.pushNamed(context, AppRoutes.indicators);
+                                        if (widget.onNavigateToIndicator != null) {
+                                          widget.onNavigateToIndicator!('sma');
+                                        } else {
+                                          Navigator.pushNamed(context, AppRoutes.indicators);
+                                        }
                                       },
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1129,10 +1135,14 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                       InkWell(
                         onTap: () {
                           Navigator.pop(context); // Close bottom sheet
-                          Navigator.pushNamed(
-                            context,
-                            AppRoutes.indicatorDetail(infoId),
-                          );
+                          if (widget.onNavigateToIndicator != null) {
+                            widget.onNavigateToIndicator!(infoId);
+                          } else {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoutes.indicatorDetail(infoId),
+                            );
+                          }
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
@@ -1218,10 +1228,14 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                     borderRadius: BorderRadius.circular(10),
                     onTap: () {
                       Navigator.pop(context); // Close bottom sheet
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.indicatorDetail(infoId),
-                      );
+                      if (widget.onNavigateToIndicator != null) {
+                        widget.onNavigateToIndicator!(infoId);
+                      } else {
+                        Navigator.pushNamed(
+                          context,
+                          AppRoutes.indicatorDetail(infoId),
+                        );
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(2),

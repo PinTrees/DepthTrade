@@ -16,12 +16,18 @@ import 'widgets/api_setting_view.dart';
 import 'widgets/backtest_view.dart';
 import 'widgets/coin_selector_dialog.dart';
 import 'widgets/dashboard_sidebar.dart';
+import 'widgets/indicator_guide_view.dart';
 import 'widgets/order_table_view.dart';
 import 'widgets/trade_editor_panel.dart';
 
 class DashboardPage extends StatefulWidget {
   final int initialTab;
-  const DashboardPage({super.key, this.initialTab = 0});
+  final String? initialIndicatorId;
+  const DashboardPage({
+    super.key,
+    this.initialTab = 0,
+    this.initialIndicatorId,
+  });
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -29,6 +35,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   late int _selectedTab;
+  late String _activeIndicatorId;
   bool _isSidebarCollapsed = false;
 
   String _activeSymbol = '';
@@ -42,6 +49,7 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _selectedTab = widget.initialTab;
+    _activeIndicatorId = widget.initialIndicatorId ?? 'sma';
     GridBotEngine.instance.initialize(null);
     _activeSymbol = GridBotEngine.instance.config.symbol;
     GridBotEngine.instance.addListener(_onEngineChanged);
@@ -58,13 +66,22 @@ class _DashboardPageState extends State<DashboardPage> {
     if (widget.initialTab != oldWidget.initialTab && widget.initialTab != _selectedTab) {
       setState(() => _selectedTab = widget.initialTab);
     }
+    if (widget.initialIndicatorId != null &&
+        widget.initialIndicatorId != oldWidget.initialIndicatorId &&
+        widget.initialIndicatorId != _activeIndicatorId) {
+      setState(() => _activeIndicatorId = widget.initialIndicatorId!);
+    }
   }
 
-  void _onTabSelected(int index) {
-    if (_selectedTab == index) return;
+  void _onTabSelected(int index, {String? indicatorId}) {
+    if (indicatorId != null) {
+      _activeIndicatorId = indicatorId;
+    }
     setState(() => _selectedTab = index);
 
-    final route = AppRoutes.routeFromTab(index);
+    final route = index == 5
+        ? AppRoutes.indicatorDetail(_activeIndicatorId)
+        : AppRoutes.routeFromTab(index);
     SystemNavigator.routeInformationUpdated(
       uri: Uri.parse(route),
     );
@@ -178,6 +195,18 @@ class _DashboardPageState extends State<DashboardPage> {
 
                           // Tab 4: API & 계정 설정 (Bitget API Settings)
                           const ApiSettingView(),
+
+                          // Tab 5: 보조지표 연구소 & 가이드 (메인 대시보드 통일 레이아웃 뷰)
+                          IndicatorGuideView(
+                            initialIndicatorId: _activeIndicatorId,
+                            onReturnToTerminal: () => _onTabSelected(0),
+                            onIndicatorChanged: (id) {
+                              _activeIndicatorId = id;
+                              SystemNavigator.routeInformationUpdated(
+                                uri: Uri.parse(AppRoutes.indicatorDetail(id)),
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -461,6 +490,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   liveCloseOrders: engine.liveCloseOrders,
                                   activeInterval: _activeInterval,
                                   onIntervalChanged: _changeInterval,
+                                  onNavigateToIndicator: (id) => _onTabSelected(5, indicatorId: id),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -485,6 +515,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                   liveCloseOrders: engine.liveCloseOrders,
                                   activeInterval: _activeInterval,
                                   onIntervalChanged: _changeInterval,
+                                  onNavigateToIndicator: (id) => _onTabSelected(5, indicatorId: id),
                                 ),
                               ),
                               const SizedBox(height: 10),
