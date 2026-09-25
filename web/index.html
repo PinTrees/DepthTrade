@@ -96,8 +96,8 @@
             registration.unregister();
           }
           // 이전 서비스 워커가 페이지를 제어하고 있었던 경우 1회 강제 리로드하여 최신 빌드 즉시 적용
-          if (!sessionStorage.getItem('sw_purged_v2')) {
-            sessionStorage.setItem('sw_purged_v2', 'true');
+          if (!sessionStorage.getItem('sw_purged_v3')) {
+            sessionStorage.setItem('sw_purged_v3', 'true');
             window.location.reload();
           }
         }

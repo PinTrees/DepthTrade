@@ -5,8 +5,8 @@ import '../../models/candle_data.dart';
 import '../../models/crypto_symbol.dart';
 import '../../service/bitget_api_service.dart';
 import '../../style/app_color.dart';
-import '../../widget/chart/grid_chart_widget.dart';
 import '../../widget/chart/orderbook_depth_widget.dart';
+import '../../widget/chart/trading_view_chart_viewer.dart';
 import '../../widget/galaxy_background.dart';
 import '../../widget/glow_button.dart';
 import 'widgets/account_stat_card.dart';
@@ -28,14 +28,19 @@ class _DashboardPageState extends State<DashboardPage> {
   int _selectedTab = 0;
   bool _isSidebarCollapsed = false;
 
+  String _activeSymbol = '';
+  String _activeInterval = '15m';
   List<CandleData> _candles = [];
   Map<String, List<List<double>>> _orderBook = {'bids': [], 'asks': []};
   Timer? _marketDataTimer;
+  bool _isFetchingCandles = false;
 
   @override
   void initState() {
     super.initState();
     GridBotEngine.instance.initialize(null);
+    _activeSymbol = GridBotEngine.instance.config.symbol;
+    GridBotEngine.instance.addListener(_onEngineChanged);
     _fetchMarketData();
 
     _marketDataTimer = Timer.periodic(const Duration(seconds: 3), (_) {
@@ -43,22 +48,57 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
+  void _onEngineChanged() {
+    final currentSymbol = GridBotEngine.instance.config.symbol;
+    if (_activeSymbol != currentSymbol) {
+      _activeSymbol = currentSymbol;
+      if (mounted) {
+        setState(() {
+          _candles = [];
+        });
+        _fetchMarketData();
+      }
+    }
+  }
+
+  void _changeInterval(String interval) {
+    if (_activeInterval == interval) return;
+    setState(() {
+      _activeInterval = interval;
+      _candles = [];
+    });
+    _fetchMarketData();
+  }
+
   @override
   void dispose() {
+    GridBotEngine.instance.removeListener(_onEngineChanged);
     _marketDataTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _fetchMarketData() async {
     final symbol = GridBotEngine.instance.config.symbol;
-    final candles = await BitgetApiService.instance.getCandles(symbol, '15m', 60);
     final book = await BitgetApiService.instance.getOrderBook(symbol);
 
-    if (mounted) {
-      setState(() {
-        if (candles.isNotEmpty) _candles = candles;
-        if (book['bids']!.isNotEmpty) _orderBook = book;
-      });
+    if (_isFetchingCandles) {
+      if (mounted && book['bids']!.isNotEmpty) {
+        setState(() => _orderBook = book);
+      }
+      return;
+    }
+
+    _isFetchingCandles = true;
+    try {
+      final candles = await BitgetApiService.instance.getCandles(symbol, _activeInterval, 120);
+      if (mounted) {
+        setState(() {
+          if (candles.isNotEmpty) _candles = candles;
+          if (book['bids']!.isNotEmpty) _orderBook = book;
+        });
+      }
+    } finally {
+      _isFetchingCandles = false;
     }
   }
 
@@ -343,19 +383,21 @@ class _DashboardPageState extends State<DashboardPage> {
                   final engine = GridBotEngine.instance;
 
                   return SizedBox(
-                    height: 480,
+                    height: isDesktop ? 540 : 760,
                     child: isDesktop
                         ? Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // Candlestick & Grid Overlay Chart
+                              // TradingView Candlestick & Technical Indicator Chart
                               Expanded(
                                 flex: 7,
-                                child: GridChartWidget(
+                                child: TradingViewChartViewer(
                                   candles: _candles,
                                   currentPrice: engine.currentPrice,
                                   liveBuyOrders: engine.liveOrders,
                                   liveCloseOrders: engine.liveCloseOrders,
+                                  activeInterval: _activeInterval,
+                                  onIntervalChanged: _changeInterval,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -373,11 +415,13 @@ class _DashboardPageState extends State<DashboardPage> {
                             children: [
                               Expanded(
                                 flex: 6,
-                                child: GridChartWidget(
+                                child: TradingViewChartViewer(
                                   candles: _candles,
                                   currentPrice: engine.currentPrice,
                                   liveBuyOrders: engine.liveOrders,
                                   liveCloseOrders: engine.liveCloseOrders,
+                                  activeInterval: _activeInterval,
+                                  onIntervalChanged: _changeInterval,
                                 ),
                               ),
                               const SizedBox(height: 10),

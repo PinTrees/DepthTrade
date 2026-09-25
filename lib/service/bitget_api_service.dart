@@ -119,9 +119,10 @@ class BitgetApiService {
       String symbol, String interval, int limit) async {
     try {
       final binanceSymbol = symbol.replaceAll('-', '').toUpperCase();
+      final binanceInterval = interval.toLowerCase();
       // interval: 1m, 5m, 15m, 1h, 4h, 1d
       final url = Uri.parse(
-          'https://api.binance.com/api/v3/klines?symbol=$binanceSymbol&interval=$interval&limit=$limit');
+          'https://api.binance.com/api/v3/klines?symbol=$binanceSymbol&interval=$binanceInterval&limit=$limit');
       final res = await http.get(url).timeout(const Duration(seconds: 5));
       if (res.statusCode == 200) {
         final List data = jsonDecode(res.body);
