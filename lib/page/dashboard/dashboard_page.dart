@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../engine/grid_bot_engine.dart';
 import '../../models/candle_data.dart';
 import '../../service/auth_service.dart';
@@ -249,6 +250,46 @@ class _DashboardPageState extends State<DashboardPage> {
 
               const Spacer(),
 
+              // User Profile Info
+              if (FirebaseAuth.instance.currentUser != null) ...[
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: AppColor.primary.withValues(alpha: 0.3),
+                      backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
+                          ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
+                          : null,
+                      child: FirebaseAuth.instance.currentUser?.photoURL == null
+                          ? Text(
+                              (FirebaseAuth.instance.currentUser?.displayName?.isNotEmpty == true
+                                      ? FirebaseAuth.instance.currentUser!.displayName![0]
+                                      : FirebaseAuth.instance.currentUser?.email?[0] ?? 'U')
+                                  .toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      FirebaseAuth.instance.currentUser?.displayName ??
+                          FirebaseAuth.instance.currentUser?.email?.split('@')[0] ??
+                          'Trader',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColor.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 14),
+              ],
+
               // API Key / Mode Settings Button
               IconButton(
                 icon: const Icon(Icons.settings, color: AppColor.textSecondary),
@@ -256,7 +297,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 onPressed: _openApiSettings,
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
 
               // Logout / Exit
               IconButton(
@@ -264,7 +305,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 tooltip: '로그아웃',
                 onPressed: () async {
                   await AuthService.instance.signOut();
-                  if (mounted) {
+                  if (context.mounted) {
                     Navigator.pushReplacementNamed(context, '/');
                   }
                 },
