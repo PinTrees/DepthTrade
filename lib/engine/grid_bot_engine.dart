@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/account_position.dart';
+import '../models/crypto_symbol.dart';
 import '../models/grid_config.dart';
 import '../models/trade_order.dart';
 import '../service/bitget_api_service.dart';
@@ -42,6 +43,22 @@ class GridBotEngine extends ChangeNotifier {
   void updateConfig(GridConfig newConfig) {
     config = newConfig;
     FirestoreService.instance.saveConfig(config);
+    notifyListeners();
+  }
+
+  /// 대상 코인 심볼 변경
+  void switchCoin(CryptoCoin coin) {
+    if (config.symbol == coin.symbol) return;
+    config.symbol = coin.symbol;
+    config.baseOrderSize = coin.defaultBaseSize;
+    config.posLowPrice = 0.0;
+    currentPrice = 0.0;
+    liveOrders.clear();
+    liveCloseOrders.clear();
+    filledOrders.clear();
+    systemLog = '${coin.displaySymbol} (${coin.koreanName}) 시장으로 전환되었습니다.';
+    FirestoreService.instance.saveConfig(config);
+    _startPriceTicker();
     notifyListeners();
   }
 

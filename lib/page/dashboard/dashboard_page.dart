@@ -1,18 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../../engine/grid_bot_engine.dart';
 import '../../models/candle_data.dart';
-import '../../service/auth_service.dart';
+import '../../models/crypto_symbol.dart';
 import '../../service/bitget_api_service.dart';
 import '../../style/app_color.dart';
 import '../../widget/chart/grid_chart_widget.dart';
 import '../../widget/chart/orderbook_depth_widget.dart';
 import '../../widget/galaxy_background.dart';
-import '../../widget/glass_container.dart';
+import '../../widget/glow_button.dart';
 import 'widgets/account_stat_card.dart';
-import 'widgets/api_setting_dialog.dart';
+import 'widgets/api_setting_view.dart';
 import 'widgets/backtest_view.dart';
+import 'widgets/coin_selector_dialog.dart';
+import 'widgets/dashboard_sidebar.dart';
 import 'widgets/order_table_view.dart';
 import 'widgets/trade_editor_panel.dart';
 
@@ -24,11 +25,12 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  int _selectedTab = 0;
+  bool _isSidebarCollapsed = false;
+
   List<CandleData> _candles = [];
   Map<String, List<List<double>>> _orderBook = {'bids': [], 'asks': []};
   Timer? _marketDataTimer;
-
-  int _selectedRightTab = 0; // 0: Trade Editor, 1: Backtest Lab
 
   @override
   void initState() {
@@ -60,102 +62,64 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  void _openApiSettings() {
-    showDialog(
-      context: context,
-      builder: (_) => const ApiSettingDialog(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bool autoCollapse = screenWidth < 1000;
+    final bool collapsed = _isSidebarCollapsed || autoCollapse;
+
     return Scaffold(
+      backgroundColor: AppColor.background,
       body: GalaxyBackground(
         child: SafeArea(
-          child: Column(
+          child: Row(
             children: [
-              // Top Navigation Bar
-              _buildTopNavBar(),
+              // 1. Rescene-styled Left Navigation Sidebar
+              DashboardSidebar(
+                currentIndex: _selectedTab,
+                onTabSelected: (index) => setState(() => _selectedTab = index),
+                isCollapsed: collapsed,
+                onToggleCollapse: () {
+                  setState(() => _isSidebarCollapsed = !_isSidebarCollapsed);
+                },
+              ),
 
-              // Main Responsive Layout
+              // 2. Main Content & Active Tab View
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    bool isWide = constraints.maxWidth >= 1050;
+                child: Column(
+                  children: [
+                    // Top App Bar (Active Coin Badge + Quick Switchers + Bot Controls)
+                    _buildTopBar(),
 
-                    if (isWide) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    // Active Tab Content
+                    Expanded(
+                      child: IndexedStack(
+                        index: _selectedTab,
                         children: [
-                          // Left Panel: Chart + Orderbook + Account + Orders
-                          Expanded(
-                            flex: 6,
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.only(
-                                left: 16,
-                                right: 8,
-                                top: 12,
-                                bottom: 20,
-                              ),
-                              child: Column(
-                                children: [
-                                  _buildChartAndDepthSection(height: 380),
-                                  const SizedBox(height: 14),
-                                  const AccountStatCard(),
-                                  const SizedBox(height: 14),
-                                  const OrderTableView(),
-                                ],
-                              ),
-                            ),
+                          // Tab 0: 실시간 터미널 (Terminal: Chart + Orderbook + Account Stat)
+                          _buildTerminalTab(),
+
+                          // Tab 1: 전략 파라미터 (Strategy & Sizing)
+                          _buildStrategyTab(),
+
+                          // Tab 2: 백테스트 랩 (Historical Backtest Lab)
+                          const SingleChildScrollView(
+                            padding: EdgeInsets.all(16),
+                            child: BacktestView(),
                           ),
 
-                          // Right Panel: Trade Editor / Backtest Lab Tabs
-                          Expanded(
-                            flex: 4,
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.only(
-                                left: 8,
-                                right: 16,
-                                top: 12,
-                                bottom: 20,
-                              ),
-                              child: Column(
-                                children: [
-                                  _buildRightPanelTabs(),
-                                  const SizedBox(height: 12),
-                                  if (_selectedRightTab == 0)
-                                    const TradeEditorPanel()
-                                  else
-                                    const BacktestView(),
-                                ],
-                              ),
-                            ),
+                          // Tab 3: 주문 & 체결 내역 (Orders & History)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: OrderTableView(),
                           ),
+
+                          // Tab 4: API & 계정 설정 (Bitget API Settings)
+                          const ApiSettingView(),
                         ],
-                      );
-                    } else {
-                      // Mobile / Tablet stacked layout
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          children: [
-                            _buildChartAndDepthSection(height: 320),
-                            const SizedBox(height: 14),
-                            const AccountStatCard(),
-                            const SizedBox(height: 14),
-                            _buildRightPanelTabs(),
-                            const SizedBox(height: 12),
-                            if (_selectedRightTab == 0)
-                              const TradeEditorPanel()
-                            else
-                              const BacktestView(),
-                            const SizedBox(height: 14),
-                            const OrderTableView(),
-                          ],
-                        ),
-                      );
-                    }
-                  },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -165,241 +129,280 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildTopNavBar() {
+  // Top Action Bar
+  Widget _buildTopBar() {
     return ListenableBuilder(
       listenable: GridBotEngine.instance,
       builder: (context, _) {
         final engine = GridBotEngine.instance;
-        final cfg = engine.config;
+        final coin = CryptoCoin.findBySymbol(engine.config.symbol);
 
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: AppColor.backgroundCard.withValues(alpha: 0.8),
             boxShadow: AppColor.subtleShadow,
           ),
           child: Row(
             children: [
-              // Logo (Clickable to Landing Page)
+              // Active Coin Chip
               InkWell(
-                onTap: () => Navigator.pushNamed(context, '/'),
+                onTap: () => CoinSelectorDialog.show(context),
                 borderRadius: BorderRadius.circular(10),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: AppColor.primaryGradient,
-                        borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColor.cardSurface,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: coin.color.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(coin.icon, color: coin.color, size: 14),
                       ),
-                      child: const Icon(Icons.show_chart, color: Colors.white, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'DEPTH TRADE',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                            color: AppColor.textPrimary,
-                          ),
+                      const SizedBox(width: 8),
+                      Text(
+                        coin.displaySymbol,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColor.textPrimary,
                         ),
-                        Text(
-                          'Bitget Grid Trading Platform',
-                          style: TextStyle(fontSize: 10, color: AppColor.textSecondary),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        coin.koreanName,
+                        style: const TextStyle(fontSize: 11, color: AppColor.textSecondary),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_drop_down, color: AppColor.textSecondary, size: 18),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 12),
 
-              // Symbol Selector
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColor.cardSurface, // 아웃라인 제거
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.currency_bitcoin, color: Colors.amber, size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      cfg.symbol,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: AppColor.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-
-              // Live Ticker Display
+              // Live Market Price Display
               if (engine.currentPrice > 0) ...[
                 Text(
-                  '${engine.currentPrice.toStringAsFixed(1)} USDT',
+                  '${engine.currentPrice.toStringAsFixed(coin.priceDecimals)} USDT',
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'monospace',
                     color: AppColor.accent,
                   ),
                 ),
+                const SizedBox(width: 16),
               ],
 
-              const Spacer(),
-
-              // User Profile Info
-              if (FirebaseAuth.instance.currentUser != null) ...[
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundColor: AppColor.primary.withValues(alpha: 0.3),
-                      backgroundImage: FirebaseAuth.instance.currentUser?.photoURL != null
-                          ? NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!)
-                          : null,
-                      child: FirebaseAuth.instance.currentUser?.photoURL == null
-                          ? Text(
-                              (FirebaseAuth.instance.currentUser?.displayName?.isNotEmpty == true
-                                      ? FirebaseAuth.instance.currentUser!.displayName![0]
-                                      : FirebaseAuth.instance.currentUser?.email?[0] ?? 'U')
-                                  .toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+              // Quick Coin Switcher Bar (Top 5 popular coins)
+              if (MediaQuery.of(context).size.width > 900) ...[
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: CryptoCoin.popularCoins.take(6).map((c) {
+                        final isSelected = c.symbol == engine.config.symbol;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: InkWell(
+                            onTap: () => engine.switchCoin(c),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? c.color.withValues(alpha: 0.2)
+                                    : AppColor.inputSurface.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                            )
-                          : null,
+                              child: Row(
+                                children: [
+                                  Icon(c.icon, size: 12, color: isSelected ? c.color : AppColor.textSecondary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    c.symbol.replaceFirst('USDT', ''),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      color: isSelected ? Colors.white : AppColor.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      FirebaseAuth.instance.currentUser?.displayName ??
-                          FirebaseAuth.instance.currentUser?.email?.split('@')[0] ??
-                          'Trader',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColor.textSecondary,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                const SizedBox(width: 14),
-              ],
+              ] else
+                const Spacer(),
 
-              // Home / Landing Page Button
-              IconButton(
-                icon: const Icon(Icons.home_outlined, color: AppColor.textSecondary),
-                tooltip: '홈 / 서비스 소개 보기',
-                onPressed: () => Navigator.pushNamed(context, '/'),
-              ),
-
-              const SizedBox(width: 4),
-
-              // API Key / Mode Settings Button
-              IconButton(
-                icon: const Icon(Icons.settings, color: AppColor.textSecondary),
-                tooltip: 'Bitget API 설정',
-                onPressed: _openApiSettings,
-              ),
-
-              const SizedBox(width: 4),
-
-              // Logout / Exit
-              IconButton(
-                icon: const Icon(Icons.logout, color: AppColor.textSecondary),
-                tooltip: '로그아웃',
-                onPressed: () async {
-                  await AuthService.instance.signOut();
-                  if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/');
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildChartAndDepthSection({required double height}) {
-    return ListenableBuilder(
-      listenable: GridBotEngine.instance,
-      builder: (context, _) {
-        final engine = GridBotEngine.instance;
-
-        return GlassContainer(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Chart Header Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.candlestick_chart, color: AppColor.accent, size: 18),
-                      SizedBox(width: 8),
-                      Text(
-                        '실시간 차트 & 그리드 오더 레이어 (Realtime Grid View)',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColor.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    '갱신: ${engine.lastUpdateTime.hour.toString().padLeft(2, '0')}:${engine.lastUpdateTime.minute.toString().padLeft(2, '0')}:${engine.lastUpdateTime.second.toString().padLeft(2, '0')}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColor.textDisabled,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              // Chart and Orderbook Row
-              SizedBox(
-                height: height,
+              // Bot Running Status Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: engine.isRunning
+                      ? AppColor.longGreen.withValues(alpha: 0.15)
+                      : AppColor.inputSurface,
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Row(
                   children: [
-                    // Main Candle & Grid Lines Chart
-                    Expanded(
-                      flex: 7,
-                      child: GridChartWidget(
-                        candles: _candles,
-                        currentPrice: engine.currentPrice,
-                        liveBuyOrders: engine.liveOrders,
-                        liveCloseOrders: engine.liveCloseOrders,
-                      ),
+                    Icon(
+                      Icons.fiber_manual_record,
+                      size: 10,
+                      color: engine.isRunning ? AppColor.longGreen : AppColor.textDisabled,
                     ),
-                    const SizedBox(width: 12),
-                    // Order Book Depth
-                    Expanded(
-                      flex: 3,
-                      child: OrderbookDepthWidget(
-                        orderBook: _orderBook,
-                        currentPrice: engine.currentPrice,
+                    const SizedBox(width: 6),
+                    Text(
+                      engine.isRunning ? 'LIVE RUNNING' : 'BOT IDLE',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                        color: engine.isRunning ? AppColor.longGreen : AppColor.textDisabled,
                       ),
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: 10),
+
+              // Quick Start / Stop / Panic Buttons
+              if (!engine.isRunning)
+                GlowButton(
+                  text: 'START',
+                  icon: Icons.play_arrow,
+                  height: 36,
+                  glowColor: AppColor.longGreen,
+                  gradient: AppColor.greenGradient,
+                  onPressed: () => engine.startBot(),
+                )
+              else ...[
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.shortRed.withValues(alpha: 0.8),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () => engine.stopBot(),
+                  icon: const Icon(Icons.pause, size: 16),
+                  label: const Text('PAUSE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade900,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: engine.isStopping ? null : () => engine.emergencyCancelAll(),
+                  icon: const Icon(Icons.warning_amber, size: 14),
+                  label: const Text('PANIC', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Tab 0: 실시간 터미널 (Terminal: Chart + Orderbook + Account Stat)
+  Widget _buildTerminalTab() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth >= 960;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // 1. Chart & Orderbook Depth Section
+              ListenableBuilder(
+                listenable: GridBotEngine.instance,
+                builder: (context, _) {
+                  final engine = GridBotEngine.instance;
+
+                  return SizedBox(
+                    height: 480,
+                    child: isDesktop
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Candlestick & Grid Overlay Chart
+                              Expanded(
+                                flex: 7,
+                                child: GridChartWidget(
+                                  candles: _candles,
+                                  currentPrice: engine.currentPrice,
+                                  liveBuyOrders: engine.liveOrders,
+                                  liveCloseOrders: engine.liveCloseOrders,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Orderbook Depth Bars
+                              Expanded(
+                                flex: 3,
+                                child: OrderbookDepthWidget(
+                                  orderBook: _orderBook,
+                                  currentPrice: engine.currentPrice,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              Expanded(
+                                flex: 6,
+                                child: GridChartWidget(
+                                  candles: _candles,
+                                  currentPrice: engine.currentPrice,
+                                  liveBuyOrders: engine.liveOrders,
+                                  liveCloseOrders: engine.liveCloseOrders,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Expanded(
+                                flex: 4,
+                                child: OrderbookDepthWidget(
+                                  orderBook: _orderBook,
+                                  currentPrice: engine.currentPrice,
+                                ),
+                              ),
+                            ],
+                          ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // 2. Realtime Account Stats & Log Card
+              const AccountStatCard(),
+              const SizedBox(height: 16),
+
+              // 3. Compact Live Orders Snippet
+              const SizedBox(
+                height: 320,
+                child: OrderTableView(),
               ),
             ],
           ),
@@ -408,55 +411,19 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildRightPanelTabs() {
-    return Container(
-      padding: const EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        color: AppColor.cardSurface, // 아웃라인 제거, 레이어드 서피스
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _tabButton('그리드 트레이드 설정', 0, Icons.tune),
+  // Tab 1: 전략 파라미터 (Strategy & Sizing)
+  Widget _buildStrategyTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TradeEditorPanel(),
+            ],
           ),
-          Expanded(
-            child: _tabButton('백테스트 연구소', 1, Icons.analytics),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _tabButton(String title, int index, IconData icon) {
-    bool isSelected = _selectedRightTab == index;
-
-    return InkWell(
-      onTap: () => setState(() => _selectedRightTab = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColor.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected ? Colors.white : AppColor.textSecondary,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : AppColor.textSecondary,
-              ),
-            ),
-          ],
         ),
       ),
     );

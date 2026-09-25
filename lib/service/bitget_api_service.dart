@@ -224,4 +224,10 @@ class BitgetApiService {
     }
     return false;
   }
+
+  /// API 연결 테스트
+  Future<bool> testConnection([String symbol = 'BTCUSDT']) async {
+    final detail = await getAccountDetail(symbol);
+    return detail != null;
+  }
 }
