@@ -88,11 +88,18 @@
   </div>
 
   <script>
-    // 기존에 등록된 오래된 서비스 워커 및 캐시 스토리지 즉시 강제 삭제 (최신 배포 코드 즉각 반영)
+    // 1. 등록된 모든 서비스 워커 강제 해제 및 캐시 스토리지 전면 삭제
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for (var registration of registrations) {
-          registration.unregister();
+        if (registrations.length > 0) {
+          for (var registration of registrations) {
+            registration.unregister();
+          }
+          // 이전 서비스 워커가 페이지를 제어하고 있었던 경우 1회 강제 리로드하여 최신 빌드 즉시 적용
+          if (!sessionStorage.getItem('sw_purged_v2')) {
+            sessionStorage.setItem('sw_purged_v2', 'true');
+            window.location.reload();
+          }
         }
       });
     }
@@ -103,13 +110,9 @@
         }
       });
     }
-
-    // 캐시 방지 타임스탬프를 붙여 flutter_bootstrap.js 동적 로드
-    var script = document.createElement('script');
-    script.src = 'flutter_bootstrap.js?v=' + new Date().getTime();
-    script.async = true;
-    document.body.appendChild(script);
-
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+  <script>
     // 첫 프레임 로딩 완료 시 스플래시 화면 페이드아웃
     window.addEventListener('flutter-first-frame', function() {
       const loader = document.getElementById('loading-container');
