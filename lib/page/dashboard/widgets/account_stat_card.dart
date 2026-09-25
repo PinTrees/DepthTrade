@@ -26,11 +26,11 @@ class AccountStatCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.account_balance_wallet,
+                      const Icon(Icons.account_balance_wallet,
                           color: AppColor.accent, size: 20),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         '계좌 및 포지션 현황 (Account & Position)',
                         style: TextStyle(
@@ -133,7 +133,7 @@ class AccountStatCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         engine.systemLog,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: AppColor.textSecondary,
                           fontFamily: 'monospace',
@@ -172,7 +172,7 @@ class AccountStatCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               color: AppColor.textSecondary,
               fontWeight: FontWeight.w500,
@@ -191,7 +191,7 @@ class AccountStatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             subText,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               color: AppColor.textDisabled,
             ),

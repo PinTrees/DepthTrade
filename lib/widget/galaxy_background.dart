@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../style/app_color.dart';
+import '../style/theme_service.dart';
 
 class GalaxyBackground extends StatefulWidget {
   final Widget child;
@@ -31,43 +32,51 @@ class _GalaxyBackgroundState extends State<GalaxyBackground>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Dark Base Gradient
-        Container(
-          decoration: const BoxDecoration(
-            gradient: AppColor.backgroundGradient,
-          ),
-        ),
+    return ListenableBuilder(
+      listenable: ThemeService.instance,
+      builder: (context, _) {
+        final isDark = ThemeService.instance.isDark;
 
-        // Animated Ambient Glow Orbs
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            final t = _controller.value * 2 * pi;
-            return CustomPaint(
-              painter: _AmbientGlowPainter(t),
+        return Stack(
+          children: [
+            // Dynamic Base Gradient
+            Container(
+              decoration: BoxDecoration(
+                gradient: AppColor.backgroundGradient,
+              ),
+            ),
+
+            // Animated Ambient Glow Orbs
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final t = _controller.value * 2 * pi;
+                return CustomPaint(
+                  painter: _AmbientGlowPainter(t, isDark: isDark),
+                  child: const SizedBox.expand(),
+                );
+              },
+            ),
+
+            // Subtle Trading Grid Pattern
+            CustomPaint(
+              painter: _GridBackgroundPainter(isDark: isDark),
               child: const SizedBox.expand(),
-            );
-          },
-        ),
+            ),
 
-        // Subtle Trading Grid Pattern
-        CustomPaint(
-          painter: _GridBackgroundPainter(),
-          child: const SizedBox.expand(),
-        ),
-
-        // Child Content
-        widget.child,
-      ],
+            // Child Content
+            widget.child,
+          ],
+        );
+      },
     );
   }
 }
 
 class _AmbientGlowPainter extends CustomPainter {
   final double progress;
-  _AmbientGlowPainter(this.progress);
+  final bool isDark;
+  _AmbientGlowPainter(this.progress, {required this.isDark});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -78,7 +87,7 @@ class _AmbientGlowPainter extends CustomPainter {
     final orb1Paint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF7C4DFF).withValues(alpha: 0.12),
+          const Color(0xFF7C4DFF).withValues(alpha: isDark ? 0.12 : 0.05),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: orb1Center, radius: 260));
@@ -91,7 +100,7 @@ class _AmbientGlowPainter extends CustomPainter {
     final orb2Paint = Paint()
       ..shader = RadialGradient(
         colors: [
-          const Color(0xFF00E5FF).withValues(alpha: 0.08),
+          const Color(0xFF00E5FF).withValues(alpha: isDark ? 0.08 : 0.04),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: orb2Center, radius: 300));
@@ -99,14 +108,20 @@ class _AmbientGlowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _AmbientGlowPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.isDark != isDark;
 }
 
 class _GridBackgroundPainter extends CustomPainter {
+  final bool isDark;
+  _GridBackgroundPainter({required this.isDark});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.015)
+      ..color = isDark
+          ? Colors.white.withValues(alpha: 0.015)
+          : const Color(0xFF0F172A).withValues(alpha: 0.035)
       ..strokeWidth = 1.0;
 
     const double step = 60.0;
@@ -119,5 +134,6 @@ class _GridBackgroundPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _GridBackgroundPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
 }

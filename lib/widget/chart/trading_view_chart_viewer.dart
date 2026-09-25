@@ -194,12 +194,12 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
           color: AppColor.backgroundCard,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: AppColor.accent),
-              SizedBox(height: 14),
+              const CircularProgressIndicator(color: AppColor.accent),
+              const SizedBox(height: 14),
               Text(
                 '실시간 차트 및 보조지표 연산 엔진 준비 중...',
                 style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
@@ -361,7 +361,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                                             ),
                                           ),
                                           const SizedBox(width: 8),
-                                          const Icon(Icons.add, size: 14, color: AppColor.textSecondary),
+                                          Icon(Icons.add, size: 14, color: AppColor.textSecondary),
                                           const SizedBox(width: 8),
                                           const Icon(Icons.mouse, size: 16, color: AppColor.accent),
                                           const SizedBox(width: 8),
@@ -472,8 +472,8 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                 children: [
                   Icon(_chartStyle.icon, size: 14, color: AppColor.accent),
                   const SizedBox(width: 4),
-                  Text(_chartStyle.label, style: const TextStyle(fontSize: 11, color: AppColor.textPrimary)),
-                  const Icon(Icons.arrow_drop_down, size: 14, color: AppColor.textSecondary),
+                  Text(_chartStyle.label, style: TextStyle(fontSize: 11, color: AppColor.textPrimary)),
+                  Icon(Icons.arrow_drop_down, size: 14, color: AppColor.textSecondary),
                 ],
               ),
             ),
@@ -574,7 +574,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                       color: _subIndicator != SubIndicator.none ? AppColor.accent : AppColor.textPrimary,
                     ),
                   ),
-                  const Icon(Icons.arrow_drop_down, size: 14, color: AppColor.textSecondary),
+                  Icon(Icons.arrow_drop_down, size: 14, color: AppColor.textSecondary),
                 ],
               ),
             ),
@@ -601,11 +601,11 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                 color: AppColor.inputSurface,
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.tune, size: 13, color: AppColor.accent),
-                  SizedBox(width: 4),
+                  const Icon(Icons.tune, size: 13, color: AppColor.accent),
+                  const SizedBox(width: 4),
                   Text('지표 설정', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColor.textPrimary)),
                 ],
               ),
@@ -614,7 +614,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
 
           // Reset View
           IconButton(
-            icon: const Icon(Icons.restart_alt, size: 15, color: AppColor.textSecondary),
+            icon: Icon(Icons.restart_alt, size: 15, color: AppColor.textSecondary),
             tooltip: '초기 뷰로 리셋',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -685,7 +685,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
         runSpacing: 3,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Text(timeStr, style: const TextStyle(fontSize: 11, color: AppColor.textDisabled, fontFamily: 'monospace')),
+          Text(timeStr, style: TextStyle(fontSize: 11, color: AppColor.textDisabled, fontFamily: 'monospace')),
           _ohlcItem('시(O)', c.open.toStringAsFixed(1), AppColor.textPrimary),
           _ohlcItem('고(H)', c.high.toStringAsFixed(1), AppColor.textPrimary),
           _ohlcItem('저(L)', c.low.toStringAsFixed(1), AppColor.textPrimary),
@@ -770,7 +770,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label: ', style: const TextStyle(fontSize: 11, color: AppColor.textSecondary)),
+        Text('$label: ', style: TextStyle(fontSize: 11, color: AppColor.textSecondary)),
         Text(val, style: TextStyle(fontSize: 11, fontFamily: 'monospace', fontWeight: FontWeight.bold, color: valColor)),
       ],
     );
@@ -821,7 +821,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
                           ],
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: AppColor.textSecondary, size: 20),
+                          icon: Icon(Icons.close, color: AppColor.textSecondary, size: 20),
                           onPressed: () => Navigator.pop(ctx),
                         ),
                       ],
@@ -952,7 +952,7 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
-                Text(subtitle, style: const TextStyle(fontSize: 10, color: AppColor.textSecondary)),
+                Text(subtitle, style: TextStyle(fontSize: 10, color: AppColor.textSecondary)),
               ],
             ),
           ),

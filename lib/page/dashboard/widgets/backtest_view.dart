@@ -94,10 +94,10 @@ class _BacktestViewState extends State<BacktestView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
-          const Row(
+          Row(
             children: [
-              Icon(Icons.query_stats, color: AppColor.accent, size: 20),
-              SizedBox(width: 8),
+              const Icon(Icons.query_stats, color: AppColor.accent, size: 20),
+              const SizedBox(width: 8),
               Text(
                 '백테스팅 시뮬레이션 연구소 (Backtest Lab)',
                 style: TextStyle(
@@ -118,7 +118,7 @@ class _BacktestViewState extends State<BacktestView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('캔들 주기 (Interval)',
+                    Text('캔들 주기 (Interval)',
                         style: TextStyle(fontSize: 12, color: AppColor.textSecondary)),
                     const SizedBox(height: 6),
                     Container(
@@ -156,7 +156,7 @@ class _BacktestViewState extends State<BacktestView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('데이터 수량 (Candles)',
+                    Text('데이터 수량 (Candles)',
                         style: TextStyle(fontSize: 12, color: AppColor.textSecondary)),
                     const SizedBox(height: 6),
                     Container(
@@ -261,7 +261,7 @@ class _BacktestViewState extends State<BacktestView> {
             Container(
               padding: const EdgeInsets.symmetric(vertical: 36),
               alignment: Alignment.center,
-              child: const Text(
+              child: Text(
                 '현재 설정된 파라미터로 과거 캔들스틱 구간을 검증해보세요.',
                 style: TextStyle(color: AppColor.textDisabled, fontSize: 13),
               ),
@@ -285,7 +285,7 @@ class _BacktestViewState extends State<BacktestView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(fontSize: 11, color: AppColor.textSecondary)),
+              style: TextStyle(fontSize: 11, color: AppColor.textSecondary)),
           const SizedBox(height: 4),
           Text(
             val,

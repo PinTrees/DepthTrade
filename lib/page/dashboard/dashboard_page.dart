@@ -6,7 +6,7 @@ import '../../models/candle_data.dart';
 import '../../models/crypto_symbol.dart';
 import '../../routes/app_routes.dart';
 import '../../service/bitget_api_service.dart';
-import '../../style/app_color.dart';
+import '../../style/style.dart';
 import '../../widget/chart/orderbook_depth_widget.dart';
 import '../../widget/chart/trading_view_chart_viewer.dart';
 import '../../widget/galaxy_background.dart';
@@ -173,7 +173,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           // Tab 3: 주문 & 체결 내역 (Orders & History)
                           const Padding(
                             padding: EdgeInsets.all(16),
-                            child: OrderTableView(),
+                            child: OrderTableView(isFullPage: true),
                           ),
 
                           // Tab 4: API & 계정 설정 (Bitget API Settings)
@@ -194,7 +194,7 @@ class _DashboardPageState extends State<DashboardPage> {
   // Top Action Bar
   Widget _buildTopBar() {
     return ListenableBuilder(
-      listenable: GridBotEngine.instance,
+      listenable: Listenable.merge([GridBotEngine.instance, ThemeService.instance]),
       builder: (context, _) {
         final engine = GridBotEngine.instance;
         final coin = CryptoCoin.findBySymbol(engine.config.symbol);
@@ -231,7 +231,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       const SizedBox(width: 8),
                       Text(
                         coin.displaySymbol,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AppColor.textPrimary,
@@ -240,10 +240,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       const SizedBox(width: 6),
                       Text(
                         coin.koreanName,
-                        style: const TextStyle(fontSize: 11, color: AppColor.textSecondary),
+                        style: TextStyle(fontSize: 11, color: AppColor.textSecondary),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.arrow_drop_down, color: AppColor.textSecondary, size: 18),
+                      Icon(Icons.arrow_drop_down, color: AppColor.textSecondary, size: 18),
                     ],
                   ),
                 ),
@@ -381,6 +381,47 @@ class _DashboardPageState extends State<DashboardPage> {
                   label: const Text('PANIC', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                 ),
               ],
+              const SizedBox(width: 10),
+
+              // Theme Mode Toggle (Light / Dark)
+              ListenableBuilder(
+                listenable: ThemeService.instance,
+                builder: (context, _) {
+                  final isDark = ThemeService.instance.isDark;
+                  return InkWell(
+                    onTap: () => ThemeService.instance.toggleTheme(),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColor.cardSurface,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: AppColor.subtleShadow,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                            size: 15,
+                            color: isDark ? const Color(0xFFFFD700) : const Color(0xFF6366F1),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            isDark ? 'LIGHT' : 'DARK',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'monospace',
+                              color: isDark ? const Color(0xFFFFD700) : const Color(0xFF6366F1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         );

@@ -84,10 +84,10 @@ class _TradeEditorPanelState extends State<TradeEditorPanel> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.tune, color: AppColor.accent, size: 20),
-                      SizedBox(width: 8),
+                      const Icon(Icons.tune, color: AppColor.accent, size: 20),
+                      const SizedBox(width: 8),
                       Text(
                         '그리드 트레이드 설정 (Trade Editor)',
                         style: TextStyle(
@@ -195,7 +195,7 @@ class _TradeEditorPanelState extends State<TradeEditorPanel> {
               // Leverage Slider
               Row(
                 children: [
-                  const Text(
+                  Text(
                     '레버리지:',
                     style: TextStyle(fontSize: 13, color: AppColor.textSecondary),
                   ),

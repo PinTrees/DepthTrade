@@ -96,10 +96,10 @@ class _ApiSettingViewState extends State<ApiSettingView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Header
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.vpn_key, color: AppColor.accent, size: 24),
-                  SizedBox(width: 12),
+                  const Icon(Icons.vpn_key, color: AppColor.accent, size: 24),
+                  const SizedBox(width: 12),
                   Text(
                     'Bitget API & 계정 거래 모드',
                     style: TextStyle(
@@ -111,7 +111,7 @@ class _ApiSettingViewState extends State<ApiSettingView> {
                 ],
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 '실제 Bitget 선물 계좌와 직접 연동하거나 가상 모의투자로 안전하게 시뮬레이션을 진행할 수 있습니다.',
                 style: TextStyle(fontSize: 13, color: AppColor.textSecondary),
               ),
@@ -124,7 +124,7 @@ class _ApiSettingViewState extends State<ApiSettingView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '운용 모드 선택',
                       style: TextStyle(
                         fontSize: 14,
@@ -207,10 +207,10 @@ class _ApiSettingViewState extends State<ApiSettingView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.lock, size: 18, color: AppColor.secondary),
-                        SizedBox(width: 8),
+                        const Icon(Icons.lock, size: 18, color: AppColor.secondary),
+                        const SizedBox(width: 8),
                         Text(
                           'Bitget v2 API 인증 정보 (로컬 암호화 저장)',
                           style: TextStyle(
@@ -222,7 +222,7 @@ class _ApiSettingViewState extends State<ApiSettingView> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'API Key와 Secret은 서버로 절대 전송되지 않으며 현재 브라우저 저장소에만 안전하게 보관됩니다.',
                       style: TextStyle(fontSize: 12, color: AppColor.textDisabled),
                     ),

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'app_colors.dart';
+import 'app_gradients.dart';
+import 'app_shadows.dart';
+import 'theme_service.dart';
 
 class AppColor {
   // Brand Primary & Accent
@@ -13,69 +17,63 @@ class AppColor {
   static const Color warning = Color(0xFFFFB300); // Amber warning
   static const Color neutral = Color(0xFF94A3B8); // Slate grey
 
-  // Layered Surfaces (아웃라인 없는 자연스러운 깊이감 계층)
-  static const Color background = Color(0xFF0B0E17);
-  static const Color backgroundCard = Color(0xFF131722);
-  static const Color backgroundSurface = Color(0xFF1A2030);
-  static const Color cardSurface = Color(0xFF161C2C);
-  static const Color elevatedSurface = Color(0xFF1E263B);
-  static const Color inputSurface = Color(0xFF111523);
+  // Borders & Static Gradients
+  static const Color glassBorder = Colors.transparent;
+  static const Color glassBorderHighlight = Colors.transparent;
+  static const Color cardBorder = Colors.transparent;
 
-  static const LinearGradient backgroundGradient = LinearGradient(
-    colors: [
-      Color(0xFF080B14),
-      Color(0xFF0D1222),
-      Color(0xFF12182B),
-    ],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static const LinearGradient primaryGradient = AppGradients.brand;
+  static const LinearGradient greenGradient = AppGradients.profit;
+  static const LinearGradient redGradient = AppGradients.loss;
 
-  static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF7C4DFF), Color(0xFF448AFF)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  // Dynamic Theme State
+  static bool get isDark => ThemeService.instance.isDark;
 
-  static const LinearGradient greenGradient = LinearGradient(
-    colors: [Color(0xFF00E676), Color(0xFF00B0FF)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  // Dynamic Theme Colors
+  static Color get background =>
+      isDark ? DarkPalette.background : LightPalette.background;
+  static Color get backgroundCard =>
+      isDark ? DarkPalette.backgroundCard : LightPalette.backgroundCard;
+  static Color get backgroundSurface =>
+      isDark ? DarkPalette.backgroundSurface : LightPalette.backgroundSurface;
+  static Color get cardSurface =>
+      isDark ? DarkPalette.cardSurface : LightPalette.cardSurface;
+  static Color get elevatedSurface =>
+      isDark ? DarkPalette.elevatedSurface : LightPalette.elevatedSurface;
+  static Color get inputSurface =>
+      isDark ? DarkPalette.inputSurface : LightPalette.inputSurface;
 
-  static const LinearGradient redGradient = LinearGradient(
-    colors: [Color(0xFFFF5252), Color(0xFFFF1744)],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
+  static Color get textPrimary =>
+      isDark ? DarkPalette.textPrimary : LightPalette.textPrimary;
+  static Color get textSecondary =>
+      isDark ? DarkPalette.textSecondary : LightPalette.textSecondary;
+  static Color get textDisabled =>
+      isDark ? DarkPalette.textDisabled : LightPalette.textDisabled;
+  static Color get divider =>
+      isDark ? DarkPalette.divider : LightPalette.divider;
 
-  // Glassmorphism styling (아웃라인 제거, 은은한 배경과 소프트 섀도우)
-  static Color glassBackground = Colors.white.withValues(alpha: 0.05);
-  static Color glassBackgroundActive = Colors.white.withValues(alpha: 0.10);
-  static Color glassBorder = Colors.transparent; // 아웃라인 제거
-  static Color glassBorderHighlight = Colors.transparent; // 아웃라인 제거
-  static Color cardBorder = Colors.transparent; // 아웃라인 제거
+  // Glassmorphism tokens
+  static Color get glassBackground =>
+      isDark ? DarkPalette.glass : LightPalette.glass;
+  static Color get glassBackgroundActive =>
+      isDark ? DarkPalette.glassActive : LightPalette.glassActive;
 
-  // Soft depth shadows for borderless elevation
-  static List<BoxShadow> elevationShadow = [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.25),
-      blurRadius: 18,
-      spreadRadius: 0,
-      offset: const Offset(0, 6),
-    ),
-  ];
+  // Dynamic Shadow tokens
+  static List<BoxShadow> get subtleShadow =>
+      isDark ? AppShadows.darkSubtle : AppShadows.lightSubtle;
+  static List<BoxShadow> get elevationShadow =>
+      isDark ? AppShadows.darkElevation : AppShadows.lightElevation;
 
-  static List<BoxShadow> subtleShadow = [
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.15),
-      blurRadius: 10,
-      offset: const Offset(0, 3),
-    ),
-  ];
+  // Dynamic Background Gradient
+  static LinearGradient get backgroundGradient =>
+      isDark ? AppGradients.darkBackground : AppGradients.lightBackground;
 
-  // Text colors
-  static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color textDisabled = Color(0xFF64748B);
+  // Context-aware dynamic helpers
+  static Color dynamicBackground([BuildContext? context]) => background;
+  static Color dynamicCard([BuildContext? context]) => cardSurface;
+  static Color dynamicInput([BuildContext? context]) => inputSurface;
+  static Color dynamicText([BuildContext? context]) => textPrimary;
+  static Color dynamicTextSecondary([BuildContext? context]) => textSecondary;
+  static List<BoxShadow> dynamicSubtleShadow([BuildContext? context]) => subtleShadow;
+  static List<BoxShadow> dynamicElevationShadow([BuildContext? context]) => elevationShadow;
 }

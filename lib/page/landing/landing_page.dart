@@ -142,7 +142,7 @@ class _LandingPageState extends State<LandingPage> {
                       color: Colors.white, size: 22),
                 ),
                 const SizedBox(width: 12),
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
@@ -154,7 +154,7 @@ class _LandingPageState extends State<LandingPage> {
                         color: AppColor.textPrimary,
                       ),
                     ),
-                    Text(
+                    const Text(
                       'QUANT AUTOMATION',
                       style: TextStyle(
                         fontSize: 9,
@@ -217,7 +217,7 @@ class _LandingPageState extends State<LandingPage> {
                       const SizedBox(width: 8),
                       Text(
                         user?.displayName ?? 'Trader',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColor.textPrimary,
@@ -235,7 +235,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.logout, size: 18, color: AppColor.textSecondary),
+                  icon: Icon(Icons.logout, size: 18, color: AppColor.textSecondary),
                   tooltip: '로그아웃',
                   onPressed: () async {
                     await AuthService.instance.signOut();
@@ -356,7 +356,7 @@ class _LandingPageState extends State<LandingPage> {
                   onPressed: _handleGoogleSignIn,
                 ),
                 const SizedBox(height: 14),
-                const Text(
+                Text(
                   '별도의 복잡한 회원가입 없이 Google 계정으로 즉시 연동됩니다.',
                   style: TextStyle(fontSize: 12, color: AppColor.textDisabled),
                 ),
@@ -389,7 +389,7 @@ class _LandingPageState extends State<LandingPage> {
                 const SizedBox(width: 8),
                 _dot(const Color(0xFF27C93F)),
                 const SizedBox(width: 16),
-                const Text(
+                Text(
                   'DepthTrade Quantum Grid Terminal — BTC/USDT',
                   style: TextStyle(
                     fontSize: 12,
@@ -463,7 +463,7 @@ class _LandingPageState extends State<LandingPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(fontSize: 11, color: AppColor.textSecondary)),
+              style: TextStyle(fontSize: 11, color: AppColor.textSecondary)),
           const SizedBox(height: 4),
           Text(
             val,
@@ -527,7 +527,7 @@ class _LandingPageState extends State<LandingPage> {
           const SizedBox(height: 6),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
               color: AppColor.textPrimary,
@@ -537,7 +537,7 @@ class _LandingPageState extends State<LandingPage> {
           Text(
             sub,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               color: AppColor.textDisabled,
             ),
@@ -557,7 +557,7 @@ class _LandingPageState extends State<LandingPage> {
           constraints: const BoxConstraints(maxWidth: 1050),
           child: Column(
             children: [
-              const Text(
+              Text(
                 '핵심 퀀트 트레이딩 기능',
                 style: TextStyle(
                   fontSize: 28,
@@ -566,7 +566,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 '원작 BitgetBot_GridTrade의 검증된 알고리즘을 최신 플러터 웹 기술로 구현했습니다.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
@@ -637,7 +637,7 @@ class _LandingPageState extends State<LandingPage> {
           const SizedBox(height: 18),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColor.textPrimary,
@@ -646,7 +646,7 @@ class _LandingPageState extends State<LandingPage> {
           const SizedBox(height: 8),
           Text(
             desc,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               color: AppColor.textSecondary,
               height: 1.5,
@@ -691,7 +691,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 '직접 체험하는 마틴게일 심도 계산기',
                 style: TextStyle(
                   fontSize: 28,
@@ -700,7 +700,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 '자금과 그리드 단계를 조절하여 알고리즘이 주문 규모를 어떻게 배분하는지 실시간으로 확인해보세요.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
@@ -739,7 +739,7 @@ class _LandingPageState extends State<LandingPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
@@ -774,7 +774,7 @@ class _LandingPageState extends State<LandingPage> {
                                     width: 70,
                                     child: Text(
                                       'Depth ${idx + 1}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                         color: AppColor.textSecondary,
@@ -800,7 +800,7 @@ class _LandingPageState extends State<LandingPage> {
                                     child: Text(
                                       '${orderAmount.toStringAsFixed(1)} USDT (${m}x)',
                                       textAlign: TextAlign.right,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         fontFamily: 'monospace',
                                         fontWeight: FontWeight.bold,
@@ -832,7 +832,7 @@ class _LandingPageState extends State<LandingPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('운용 자금 (USDT)',
+            Text('운용 자금 (USDT)',
                 style: TextStyle(fontSize: 13, color: AppColor.textSecondary)),
             Text(
               '${_depositAmount.toStringAsFixed(0)} USDT',
@@ -865,7 +865,7 @@ class _LandingPageState extends State<LandingPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('그리드 심도 레벨 (Depth)',
+            Text('그리드 심도 레벨 (Depth)',
                 style: TextStyle(fontSize: 13, color: AppColor.textSecondary)),
             Text(
               '$_selectedDepth 단계',
@@ -901,7 +901,7 @@ class _LandingPageState extends State<LandingPage> {
           constraints: const BoxConstraints(maxWidth: 1050),
           child: Column(
             children: [
-              const Text(
+              Text(
                 '감정적 수동매매 vs DepthTrade 퀀트 자동매매',
                 style: TextStyle(
                   fontSize: 28,
@@ -910,7 +910,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 '더 이상 밤새 차트를 보며 불안해하지 마세요. 통계와 수학적 규칙이 시장을 지배합니다.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
@@ -956,7 +956,7 @@ class _LandingPageState extends State<LandingPage> {
                 child: const Icon(Icons.close, color: AppColor.shortRed, size: 20),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 '일반 수동 투자 (Manual)',
                 style: TextStyle(
                   fontSize: 16,
@@ -1051,7 +1051,7 @@ class _LandingPageState extends State<LandingPage> {
           constraints: const BoxConstraints(maxWidth: 1000),
           child: Column(
             children: [
-              const Text(
+              Text(
                 '단 3단계로 시작하는 자동매매',
                 style: TextStyle(
                   fontSize: 26,
@@ -1120,7 +1120,7 @@ class _LandingPageState extends State<LandingPage> {
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: AppColor.textPrimary,
@@ -1129,7 +1129,7 @@ class _LandingPageState extends State<LandingPage> {
           const SizedBox(height: 8),
           Text(
             desc,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               color: AppColor.textSecondary,
               height: 1.5,
@@ -1150,7 +1150,7 @@ class _LandingPageState extends State<LandingPage> {
           constraints: const BoxConstraints(maxWidth: 1050),
           child: Column(
             children: [
-              const Text(
+              Text(
                 '신뢰할 수 있는 보안 및 테크 아키텍처',
                 style: TextStyle(
                   fontSize: 28,
@@ -1159,7 +1159,7 @@ class _LandingPageState extends State<LandingPage> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 '트레이더의 자산 보안을 최우선으로 설계된 안전한 프라이빗 엔진입니다.',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
@@ -1212,7 +1212,7 @@ class _LandingPageState extends State<LandingPage> {
           const SizedBox(height: 14),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
               color: AppColor.textPrimary,
@@ -1221,7 +1221,7 @@ class _LandingPageState extends State<LandingPage> {
           const SizedBox(height: 8),
           Text(
             desc,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: AppColor.textSecondary,
               height: 1.5,
@@ -1271,7 +1271,7 @@ class _LandingPageState extends State<LandingPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Google 계정으로 로그인 후 즉시 무료 모의투자 시뮬레이션을 가동할 수 있습니다.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 14, color: AppColor.textSecondary),
@@ -1309,7 +1309,7 @@ class _LandingPageState extends State<LandingPage> {
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.4),
       ),
-      child: const Column(
+      child: Column(
         children: [
           Text(
             'DEPTH TRADE · QUANTITATIVE AUTOMATED TRADING SYSTEM',
@@ -1320,13 +1320,13 @@ class _LandingPageState extends State<LandingPage> {
               color: AppColor.textSecondary,
             ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             '면책 고지: 가상자산 및 선물 거래는 높은 변동성으로 인해 원금 손실의 위험이 따릅니다. 본 플랫폼은 투자 보조 도구이며 투자 결과에 대한 최종 책임은 사용자 본인에게 있습니다.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 11, color: AppColor.textDisabled),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             '© 2026 DepthTrade. All rights reserved. Powered by BitgetBot_GridTrade Core Engine.',
             style: TextStyle(fontSize: 11, color: AppColor.textDisabled),

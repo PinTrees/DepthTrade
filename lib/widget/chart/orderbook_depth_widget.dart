@@ -28,8 +28,8 @@ class OrderbookDepthWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Header
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -86,7 +86,7 @@ class OrderbookDepthWidget extends StatelessWidget {
                   color: AppColor.accent,
                 ),
               ),
-              const Text(
+              Text(
                 '실시간 체결가',
                 style: TextStyle(fontSize: 11, color: AppColor.textSecondary),
               ),
@@ -155,7 +155,7 @@ class OrderbookDepthWidget extends StatelessWidget {
               ),
               Text(
                 amount.toStringAsFixed(3),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: AppColor.textSecondary,
                   fontFamily: 'monospace',

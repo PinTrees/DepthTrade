@@ -32,7 +32,7 @@ class GlassInputField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: AppColor.textSecondary,
@@ -50,14 +50,14 @@ class GlassInputField extends StatelessWidget {
             keyboardType: keyboardType,
             enabled: enabled,
             onChanged: onChanged,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               color: AppColor.textPrimary,
               fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(
+              hintStyle: TextStyle(
                 color: AppColor.textDisabled,
                 fontSize: 13,
               ),

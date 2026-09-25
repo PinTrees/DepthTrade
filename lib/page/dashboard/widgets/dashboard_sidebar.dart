@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../engine/grid_bot_engine.dart';
 import '../../../models/crypto_symbol.dart';
 import '../../../service/auth_service.dart';
-import '../../../style/app_color.dart';
+import '../../../style/style.dart';
 import 'coin_selector_dialog.dart';
 
 class DashboardSidebar extends StatelessWidget {
@@ -22,18 +22,21 @@ class DashboardSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double width = isCollapsed ? 76 : 240;
+    return ListenableBuilder(
+      listenable: ThemeService.instance,
+      builder: (context, _) {
+        final double width = isCollapsed ? 76 : 240;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeInOutCubic,
-      width: width,
-      decoration: BoxDecoration(
-        color: AppColor.backgroundCard.withValues(alpha: 0.95),
-        boxShadow: AppColor.subtleShadow,
-      ),
-      child: Column(
-        children: [
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeInOutCubic,
+          width: width,
+          decoration: BoxDecoration(
+            color: AppColor.backgroundCard.withValues(alpha: 0.95),
+            boxShadow: AppColor.subtleShadow,
+          ),
+          child: Column(
+            children: [
           // 1. Sidebar Header (Branding & Collapse Toggle)
           _buildHeader(context),
           const SizedBox(height: 12),
@@ -96,6 +99,8 @@ class DashboardSidebar extends StatelessWidget {
         ],
       ),
     );
+      },
+    );
   }
 
   // Header
@@ -128,7 +133,7 @@ class DashboardSidebar extends StatelessWidget {
                     child: const Icon(Icons.show_chart, color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 10),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -140,7 +145,7 @@ class DashboardSidebar extends StatelessWidget {
                           color: AppColor.textPrimary,
                         ),
                       ),
-                      Text(
+                      const Text(
                         'QUANT AUTOMATION',
                         style: TextStyle(
                           fontSize: 8,
@@ -227,7 +232,7 @@ class DashboardSidebar extends StatelessWidget {
                           children: [
                             Text(
                               coin.displaySymbol,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AppColor.textPrimary,
@@ -308,7 +313,7 @@ class DashboardSidebar extends StatelessWidget {
                         user.displayName ?? 'Trader',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                           color: AppColor.textPrimary,
@@ -318,7 +323,7 @@ class DashboardSidebar extends StatelessWidget {
                         user.email ?? '',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
                           color: AppColor.textDisabled,
                         ),
@@ -336,12 +341,27 @@ class DashboardSidebar extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               IconButton(
-                icon: const Icon(Icons.home_outlined, size: 19, color: AppColor.textSecondary),
+                icon: Icon(Icons.home_outlined, size: 19, color: AppColor.textSecondary),
                 tooltip: '홈 / 랜딩페이지로 이동',
                 onPressed: () => Navigator.pushNamed(context, '/'),
               ),
+              ListenableBuilder(
+                listenable: ThemeService.instance,
+                builder: (context, _) {
+                  final isDark = ThemeService.instance.isDark;
+                  return IconButton(
+                    icon: Icon(
+                      isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                      size: 18,
+                      color: isDark ? const Color(0xFFFFD700) : const Color(0xFF6366F1),
+                    ),
+                    tooltip: isDark ? '라이트 모드로 전환' : '다크 모드로 전환',
+                    onPressed: () => ThemeService.instance.toggleTheme(),
+                  );
+                },
+              ),
               IconButton(
-                icon: const Icon(Icons.logout, size: 18, color: AppColor.textSecondary),
+                icon: Icon(Icons.logout, size: 18, color: AppColor.textSecondary),
                 tooltip: '로그아웃',
                 onPressed: () async {
                   await AuthService.instance.signOut();
@@ -443,7 +463,7 @@ class _SidebarMenuItemState extends State<_SidebarMenuItem> {
                             const SizedBox(height: 2),
                             Text(
                               widget.subtitle!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 10,
                                 color: AppColor.textDisabled,
                               ),

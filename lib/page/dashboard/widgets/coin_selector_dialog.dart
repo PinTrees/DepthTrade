@@ -47,10 +47,10 @@ class _CoinSelectorDialogState extends State<CoinSelectorDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.currency_exchange, color: AppColor.accent, size: 22),
-                    SizedBox(width: 10),
+                    const Icon(Icons.currency_exchange, color: AppColor.accent, size: 22),
+                    const SizedBox(width: 10),
                     Text(
                       '거래 코인 선택 (Market)',
                       style: TextStyle(
@@ -62,13 +62,13 @@ class _CoinSelectorDialogState extends State<CoinSelectorDialog> {
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: AppColor.textSecondary, size: 20),
+                  icon: Icon(Icons.close, color: AppColor.textSecondary, size: 20),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               '유동성이 풍부한 메이저 및 인기 암호화폐 선물 종목입니다.',
               style: TextStyle(fontSize: 12, color: AppColor.textSecondary),
             ),
@@ -82,8 +82,8 @@ class _CoinSelectorDialogState extends State<CoinSelectorDialog> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: TextField(
-                style: const TextStyle(fontSize: 13, color: AppColor.textPrimary),
-                decoration: const InputDecoration(
+                style: TextStyle(fontSize: 13, color: AppColor.textPrimary),
+                decoration: InputDecoration(
                   icon: Icon(Icons.search, size: 18, color: AppColor.textSecondary),
                   hintText: '심볼, 영문명 또는 한글명 검색 (예: BTC, 솔라나)',
                   hintStyle: TextStyle(fontSize: 12, color: AppColor.textDisabled),
@@ -156,7 +156,7 @@ class _CoinSelectorDialogState extends State<CoinSelectorDialog> {
                                         color: AppColor.inputSurface,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'USDT-FUTURES',
                                         style: TextStyle(
                                           fontSize: 9,
@@ -170,7 +170,7 @@ class _CoinSelectorDialogState extends State<CoinSelectorDialog> {
                                 const SizedBox(height: 4),
                                 Text(
                                   '${coin.koreanName} · ${coin.name}',
-                                  style: const TextStyle(fontSize: 11, color: AppColor.textSecondary),
+                                  style: TextStyle(fontSize: 11, color: AppColor.textSecondary),
                                 ),
                               ],
                             ),
@@ -182,7 +182,7 @@ class _CoinSelectorDialogState extends State<CoinSelectorDialog> {
                             children: [
                               Text(
                                 '기본: ${coin.defaultBaseSize} ${coin.symbol.replaceAll('USDT', '')}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   fontFamily: 'monospace',
                                   color: AppColor.textSecondary,

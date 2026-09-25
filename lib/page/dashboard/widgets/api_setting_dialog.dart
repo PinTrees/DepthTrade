@@ -103,10 +103,10 @@ class _ApiSettingDialogState extends State<ApiSettingDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.vpn_key, color: AppColor.accent, size: 22),
-                    SizedBox(width: 10),
+                    const Icon(Icons.vpn_key, color: AppColor.accent, size: 22),
+                    const SizedBox(width: 10),
                     Text(
                       'Bitget API & 거래 모드 설정',
                       style: TextStyle(
@@ -118,7 +118,7 @@ class _ApiSettingDialogState extends State<ApiSettingDialog> {
                   ],
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: AppColor.textSecondary),
+                  icon: Icon(Icons.close, color: AppColor.textSecondary),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
