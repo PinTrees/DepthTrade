@@ -138,58 +138,173 @@ class TechnicalIndicators {
   }
 }
 
+/// 기술적 지표 튜닝 파라미터 모델
+class IndicatorParams {
+  final int sma7;
+  final int sma25;
+  final int sma99;
+  final int sma200;
+  final int ema9;
+  final int ema21;
+  final int ema50;
+  final int ema200;
+  final int bbPeriod;
+  final double bbMultiplier;
+  final double sarStep;
+  final double sarMaxStep;
+  final int atrPeriod;
+  final int superTrendPeriod;
+  final double superTrendMultiplier;
+  final int ichimokuTenkan;
+  final int ichimokuKijun;
+  final int ichimokuSenkou;
+  final int rsiPeriod;
+  final int macdFast;
+  final int macdSlow;
+  final int macdSignal;
+  final int kdjN;
+  final int wrPeriod;
+  final int cciPeriod;
+
+  const IndicatorParams({
+    this.sma7 = 7,
+    this.sma25 = 25,
+    this.sma99 = 99,
+    this.sma200 = 200,
+    this.ema9 = 9,
+    this.ema21 = 21,
+    this.ema50 = 50,
+    this.ema200 = 200,
+    this.bbPeriod = 20,
+    this.bbMultiplier = 2.0,
+    this.sarStep = 0.02,
+    this.sarMaxStep = 0.20,
+    this.atrPeriod = 14,
+    this.superTrendPeriod = 10,
+    this.superTrendMultiplier = 3.0,
+    this.ichimokuTenkan = 9,
+    this.ichimokuKijun = 26,
+    this.ichimokuSenkou = 52,
+    this.rsiPeriod = 14,
+    this.macdFast = 12,
+    this.macdSlow = 26,
+    this.macdSignal = 9,
+    this.kdjN = 9,
+    this.wrPeriod = 14,
+    this.cciPeriod = 20,
+  });
+
+  IndicatorParams copyWith({
+    int? sma7,
+    int? sma25,
+    int? sma99,
+    int? sma200,
+    int? ema9,
+    int? ema21,
+    int? ema50,
+    int? ema200,
+    int? bbPeriod,
+    double? bbMultiplier,
+    double? sarStep,
+    double? sarMaxStep,
+    int? atrPeriod,
+    int? superTrendPeriod,
+    double? superTrendMultiplier,
+    int? ichimokuTenkan,
+    int? ichimokuKijun,
+    int? ichimokuSenkou,
+    int? rsiPeriod,
+    int? macdFast,
+    int? macdSlow,
+    int? macdSignal,
+    int? kdjN,
+    int? wrPeriod,
+    int? cciPeriod,
+  }) {
+    return IndicatorParams(
+      sma7: sma7 ?? this.sma7,
+      sma25: sma25 ?? this.sma25,
+      sma99: sma99 ?? this.sma99,
+      sma200: sma200 ?? this.sma200,
+      ema9: ema9 ?? this.ema9,
+      ema21: ema21 ?? this.ema21,
+      ema50: ema50 ?? this.ema50,
+      ema200: ema200 ?? this.ema200,
+      bbPeriod: bbPeriod ?? this.bbPeriod,
+      bbMultiplier: bbMultiplier ?? this.bbMultiplier,
+      sarStep: sarStep ?? this.sarStep,
+      sarMaxStep: sarMaxStep ?? this.sarMaxStep,
+      atrPeriod: atrPeriod ?? this.atrPeriod,
+      superTrendPeriod: superTrendPeriod ?? this.superTrendPeriod,
+      superTrendMultiplier: superTrendMultiplier ?? this.superTrendMultiplier,
+      ichimokuTenkan: ichimokuTenkan ?? this.ichimokuTenkan,
+      ichimokuKijun: ichimokuKijun ?? this.ichimokuKijun,
+      ichimokuSenkou: ichimokuSenkou ?? this.ichimokuSenkou,
+      rsiPeriod: rsiPeriod ?? this.rsiPeriod,
+      macdFast: macdFast ?? this.macdFast,
+      macdSlow: macdSlow ?? this.macdSlow,
+      macdSignal: macdSignal ?? this.macdSignal,
+      kdjN: kdjN ?? this.kdjN,
+      wrPeriod: wrPeriod ?? this.wrPeriod,
+      cciPeriod: cciPeriod ?? this.cciPeriod,
+    );
+  }
+}
+
 /// 오픈소스 TA-Lib / TradingView / k_chart 표준 수식을 순수 Dart로 100% 직접 구현한 지표 엔진
 class TechnicalIndicatorCalculator {
-  static TechnicalIndicators compute(List<CandleData> candles) {
+  static TechnicalIndicators compute(List<CandleData> candles, [IndicatorParams? params]) {
     final len = candles.length;
     if (len == 0) return TechnicalIndicators.empty(0);
 
+    final p = params ?? const IndicatorParams();
+
     // 1. Moving Averages
-    final ma7 = _computeSMA(candles, 7);
-    final ma25 = _computeSMA(candles, 25);
-    final ma99 = _computeSMA(candles, 99);
-    final ma200 = _computeSMA(candles, 200);
+    final ma7 = _computeSMA(candles, p.sma7);
+    final ma25 = _computeSMA(candles, p.sma25);
+    final ma99 = _computeSMA(candles, p.sma99);
+    final ma200 = _computeSMA(candles, p.sma200);
 
-    final ema9 = _computeEMA(candles, 9);
-    final ema21 = _computeEMA(candles, 21);
-    final ema50 = _computeEMA(candles, 50);
-    final ema200 = _computeEMA(candles, 200);
+    final ema9 = _computeEMA(candles, p.ema9);
+    final ema21 = _computeEMA(candles, p.ema21);
+    final ema50 = _computeEMA(candles, p.ema50);
+    final ema200 = _computeEMA(candles, p.ema200);
 
-    // 2. Bollinger Bands (20, 2.0)
-    final bb = _computeBollinger(candles, 20, 2.0);
+    // 2. Bollinger Bands
+    final bb = _computeBollinger(candles, p.bbPeriod, p.bbMultiplier);
 
-    // 3. Parabolic SAR (0.02, 0.20)
-    final sarData = _computeParabolicSAR(candles, 0.02, 0.20);
+    // 3. Parabolic SAR
+    final sarData = _computeParabolicSAR(candles, p.sarStep, p.sarMaxStep);
 
-    // 4. ATR (14)
-    final atr14 = _computeATR(candles, 14);
+    // 4. ATR
+    final atr14 = _computeATR(candles, p.atrPeriod);
 
-    // 5. SuperTrend (10, 3.0)
-    final superTrendData = _computeSuperTrend(candles, 10, 3.0, atr14);
+    // 5. SuperTrend
+    final superTrendData = _computeSuperTrend(candles, p.superTrendPeriod, p.superTrendMultiplier, atr14);
 
     // 6. VWAP
     final vwap = _computeVWAP(candles);
 
-    // 7. Ichimoku Cloud (9, 26, 52)
-    final ichimoku = _computeIchimoku(candles, 9, 26, 52);
+    // 7. Ichimoku Cloud
+    final ichimoku = _computeIchimoku(candles, p.ichimokuTenkan, p.ichimokuKijun, p.ichimokuSenkou);
 
-    // 8. RSI (14)
-    final rsi = _computeRSI(candles, 14);
+    // 8. RSI
+    final rsi = _computeRSI(candles, p.rsiPeriod);
 
-    // 9. MACD (12, 26, 9)
-    final macdData = _computeMACD(candles, 12, 26, 9);
+    // 9. MACD
+    final macdData = _computeMACD(candles, p.macdFast, p.macdSlow, p.macdSignal);
 
     // 10. Volume MA (20)
     final volMa = _computeVolSMA(candles, 20);
 
-    // 11. KDJ (9, 3, 3)
-    final kdjData = _computeKDJ(candles, 9, 3, 3);
+    // 11. KDJ
+    final kdjData = _computeKDJ(candles, p.kdjN, 3, 3);
 
-    // 12. Williams %R (14)
-    final wr14 = _computeWilliamsR(candles, 14);
+    // 12. Williams %R
+    final wr14 = _computeWilliamsR(candles, p.wrPeriod);
 
-    // 13. CCI (20)
-    final cci20 = _computeCCI(candles, 20);
+    // 13. CCI
+    final cci20 = _computeCCI(candles, p.cciPeriod);
 
     // 14. OBV
     final obv = _computeOBV(candles);

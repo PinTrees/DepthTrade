@@ -14,6 +14,8 @@ class AppColor {
   // Trading specific colors
   static const Color longGreen = Color(0xFF00E676); // Buy / Long / Profit
   static const Color shortRed = Color(0xFFFF5252); // Sell / Short / Loss
+  static const Color upColor = longGreen;
+  static const Color downColor = shortRed;
   static const Color warning = Color(0xFFFFB300); // Amber warning
   static const Color neutral = Color(0xFF94A3B8); // Slate grey
 

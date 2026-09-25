@@ -48,6 +48,7 @@ class TradingViewChartViewer extends StatefulWidget {
   final ValueChanged<String>? onIntervalChanged;
   final ValueChanged<String>? onNavigateToIndicator;
   final String? focusedIndicatorId;
+  final IndicatorParams? indicatorParams;
 
   const TradingViewChartViewer({
     super.key,
@@ -59,6 +60,7 @@ class TradingViewChartViewer extends StatefulWidget {
     this.onIntervalChanged,
     this.onNavigateToIndicator,
     this.focusedIndicatorId,
+    this.indicatorParams,
   });
 
   @override
@@ -207,7 +209,8 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
         _applyFocusedIndicator(widget.focusedIndicatorId);
       });
     }
-    if (widget.candles != oldWidget.candles) {
+    if (widget.candles != oldWidget.candles ||
+        widget.indicatorParams != oldWidget.indicatorParams) {
       _recomputeIndicators();
     }
     if (widget.activeInterval != oldWidget.activeInterval) {
@@ -266,7 +269,10 @@ class _TradingViewChartViewerState extends State<TradingViewChartViewer> {
 
   void _recomputeIndicators() {
     if (widget.candles.isNotEmpty) {
-      _indicators = TechnicalIndicatorCalculator.compute(widget.candles);
+      _indicators = TechnicalIndicatorCalculator.compute(
+        widget.candles,
+        widget.indicatorParams,
+      );
     }
   }
 
